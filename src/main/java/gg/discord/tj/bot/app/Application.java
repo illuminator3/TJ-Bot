@@ -6,7 +6,14 @@ public class Application
 {
     public static void main(String[] args)
     {
-        TJBot bot = new TJBot();
+        if (args.length != 1)
+        {
+            System.out.println("Required: token");
+
+            return;
+        }
+
+        TJBot bot = new TJBot(args[0]);
 
         while (true)
         {

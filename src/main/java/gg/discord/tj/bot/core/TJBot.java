@@ -15,6 +15,7 @@ import discord4j.discordjson.json.MessageData;
 import discord4j.rest.RestClient;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.util.CountableMap;
+import lombok.AllArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -26,14 +27,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("ConstantConditions")
+@AllArgsConstructor
 public class TJBot
 {
+    private final String token;
+
     public void start()
         throws Throwable
     {
         ExecutorService executors = Executors.newCachedThreadPool();
-
-        String token = "ODQ5NjgxMzU3NjA1MDQ0MzI1.YLetbQ.rfYZpL404hIMCDiznam-lhhjRIc";
         GatewayDiscordClient client = DiscordClient.create(token)
                 .login()
                 .block();
