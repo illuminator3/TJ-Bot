@@ -1,17 +1,10 @@
 package gg.discord.tj.bot.util;
 
-import java.util.TreeMap;
+import java.util.Map;
 
-public class CountableMap<K>
-    extends TreeMap<K, Long>
+public interface CountableMap<K>
+    extends Map<K, Long>
 {
-    public Long count(K by)
-    {
-        return !containsKey(by) ? put(by, 1L) : compute(by, (k, v) -> v + 1);
-    }
-
-    public long getCount(K by)
-    {
-        return get(by);
-    }
+    Long count(K by);
+    long getCount(K by);
 }

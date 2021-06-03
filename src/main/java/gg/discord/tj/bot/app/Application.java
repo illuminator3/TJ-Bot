@@ -1,5 +1,6 @@
 package gg.discord.tj.bot.app;
 
+import gg.discord.tj.bot.core.Bot;
 import gg.discord.tj.bot.core.TJBot;
 
 public class Application
@@ -13,7 +14,7 @@ public class Application
             return;
         }
 
-        TJBot bot = new TJBot(args[0]);
+        Bot bot = new TJBot(args[0]);
 
         while (true)
         {
