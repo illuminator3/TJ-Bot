@@ -8,7 +8,7 @@ public class CountableTreeMap<K>
 {
     public Long count(K by)
     {
-        return !containsKey(by) ? put(by, 1L) : compute(by, (k, v) -> v + 1);
+        return merge(by, 1L, Long::sum);
     }
 
     public long getCount(K by)
