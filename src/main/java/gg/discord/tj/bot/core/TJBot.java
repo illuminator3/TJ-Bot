@@ -8,31 +8,24 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.discordjson.json.MessageData;
 import discord4j.rest.RestClient;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.db.Database;
 import gg.discord.tj.bot.util.CountableMap;
 import gg.discord.tj.bot.util.CountableTreeMap;
 import gg.discord.tj.bot.util.Tuple;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import reactor.core.publisher.Mono;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -90,7 +83,9 @@ public class TJBot
         (client = DiscordClient.create(token)
                 .login()
                 .block()).on(MessageCreateEvent.class).subscribe(e -> {
-                    if (e.getMember().isPresent() && e.getGuildId().get().asLong() == 272761734820003841L && HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) e.getMessage().getChannel().block()).getName()).find())
+                    Optional<Snowflake> guildId = e.getGuildId();
+
+                    if (e.getMember().isPresent() && guildId.isPresent() && guildId.get().asLong() == 272761734820003841L && HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) e.getMessage().getChannel().block()).getName()).find())
                         Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", e.getMember().get().getId().asLong(), System.currentTimeMillis());
                 });
 
@@ -101,9 +96,14 @@ public class TJBot
 
                 Guild guild = e.getInteraction().getGuild().block();
 
-                int limit = Math.toIntExact(e.getInteraction()
-                                .getCommandInteraction()
-                                .getOption("limit")
+                Optional<ApplicationCommandInteractionOption> limitOption = e.getInteraction()
+                        .getCommandInteraction()
+                        .getOption("limit");
+
+                if (limitOption.isEmpty())
+                    throw new RuntimeException("Unexpected exception");
+
+                int limit = Math.toIntExact(limitOption
                                 .get()
                                 .getValue()
                                 .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)

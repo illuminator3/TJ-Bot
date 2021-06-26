@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService;
 
 public interface Bot
 {
-    void start() throws Throwable;
+    void start();
     void reset();
     GatewayDiscordClient getClient();
     RestClient getRestClient();
