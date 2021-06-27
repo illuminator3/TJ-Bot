@@ -8,6 +8,8 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -26,14 +28,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.Duration;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings("ConstantConditions")
 @RequiredArgsConstructor
@@ -88,6 +89,29 @@ public class TJBot
                     if (e.getMember().isPresent() && guildId.isPresent() && guildId.get().asLong() == 272761734820003841L && HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) e.getMessage().getChannel().block()).getName()).find())
                         Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", e.getMember().get().getId().asLong(), System.currentTimeMillis());
                 });
+
+        Map<String, String> tags = Map.of(
+            "ask",
+            "Please don't ask to ask{{ user }}, nor only say hello, just ask your actual question right away. https://www.dontasktoask.com/"
+        );
+
+        client.on(MessageCreateEvent.class).subscribe(e -> {
+            Message message = e.getMessage();
+            String messageContent = message.getContent();
+
+            if (messageContent.startsWith("^?"))
+            {
+                Stream<User> mentions = message.getUserMentions().toStream();
+                String tag = messageContent.split(" ")[0].substring(2);
+
+                if (tags.containsKey(tag))
+                {
+                    String user = mentions.map(User::getMention).collect(Collectors.joining(", "));
+
+                    message.getChannel().block().createMessage(tags.get(tag).replace("{{ user }}", user.isEmpty() ? "" : " " + user)).block();
+                }
+            }
+        });
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
             if (e.getCommandName().equals("tophelpers"))
