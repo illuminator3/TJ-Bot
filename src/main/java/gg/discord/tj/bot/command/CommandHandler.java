@@ -26,7 +26,7 @@ public class CommandHandler
     {
         String content = e.getMessage().getContent();
 
-        if (content.startsWith("^") && content.length() > 2)
+        if (content.startsWith("^") && content.length() >= 2)
         {
             char commandCharacter = content.substring(1).charAt(0);
 
