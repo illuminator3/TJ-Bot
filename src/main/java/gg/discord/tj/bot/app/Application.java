@@ -5,6 +5,8 @@ import gg.discord.tj.bot.core.TJBot;
 
 public class Application
 {
+    public static Bot BOT_INSTANCE;
+
     public static void main(String[] args)
     {
         if (args.length != 1)
@@ -14,18 +16,18 @@ public class Application
             return;
         }
 
-        Bot bot = new TJBot(args[0]);
+        BOT_INSTANCE = new TJBot(args[0]);
 
         while (true)
         {
             try
             {
-                bot.start();
+                BOT_INSTANCE.start();
             } catch (Throwable thr)
             {
                 thr.printStackTrace();
 
-                bot.reset();
+                BOT_INSTANCE.reset();
                 System.gc();
             }
         }

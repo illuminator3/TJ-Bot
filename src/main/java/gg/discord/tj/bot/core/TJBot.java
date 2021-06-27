@@ -8,14 +8,16 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
 import discord4j.rest.service.ApplicationService;
 import discord4j.rest.util.ApplicationCommandOptionType;
+import gg.discord.tj.bot.command.CommandHandler;
+import gg.discord.tj.bot.command.impl.HelpCommand;
+import gg.discord.tj.bot.command.impl.TagCommand;
+import gg.discord.tj.bot.command.impl.TagListCommand;
 import gg.discord.tj.bot.db.Database;
 import gg.discord.tj.bot.util.CountableMap;
 import gg.discord.tj.bot.util.CountableTreeMap;
@@ -39,7 +41,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -67,12 +68,15 @@ public class TJBot
     private static final ApplicationCommandInteractionOptionValue APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10 =
             new ApplicationCommandInteractionOptionValue(null, null, ApplicationCommandOptionType.INTEGER.getValue(), "10");
 
+    private final Map<String, String> availableTags = new HashMap<>();
+
     private final String token;
 
     private GatewayDiscordClient client;
     private ExecutorService executorService;
     private RestClient restClient;
     private long applicationId;
+    private CommandHandler commandHandler;
 
     @SneakyThrows
     @Override
@@ -97,52 +101,17 @@ public class TJBot
                         Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", e.getMember().get().getId().asLong(), System.currentTimeMillis());
                 });
 
-        Map<String, String> tags = new HashMap<>();
-        CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
+        loadTags();
 
-        if (src != null)
-        {
-            URL jar = src.getLocation();
-            ZipInputStream zip = new ZipInputStream(jar.openStream());
+        commandHandler = new CommandHandler();
 
-            while (true)
-            {
-                ZipEntry e = zip.getNextEntry();
+        commandHandler.init(client);
 
-                if (e == null)
-                    break;
-
-                String name = e.getName();
-
-                if (name.matches("tags/.+\\.tag"))
-                {
-                    String tagName = name.substring("tags/".length()).replace(".tag", "");
-                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
-
-                    tags.put(tagName, content);
-                }
-            }
-        }
-
-        client.on(MessageCreateEvent.class).subscribe(e -> {
-            Message message = e.getMessage();
-            String messageContent = message.getContent();
-
-            if (messageContent.startsWith("^?"))
-            {
-                Stream<User> mentions = message.getUserMentions().toStream();
-                String tag = messageContent.split(" ")[0].substring(2);
-
-                if (tags.containsKey(tag))
-                {
-                    String user = mentions.map(User::getMention).collect(Collectors.joining(", "));
-
-                    message.getChannel().block().createMessage(tags.get(tag).replace("{{ user }}", user.isEmpty() ? "" : " " + user)).block();
-                }
-            }
-            else if (messageContent.equals("^!"))
-                message.getChannel().block().createMessage("All available tags:\n" + String.join(", ", tags.keySet())).block();
-        });
+        Set.of(
+            new TagCommand(),
+            new TagListCommand(),
+            new HelpCommand()
+        ).forEach(commandHandler::registerCommand);
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
             if (e.getCommandName().equals("tophelpers"))
@@ -167,8 +136,8 @@ public class TJBot
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
                 Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user FROM messages");
-                Statement statement = query.getA();
-                ResultSet result = query.getB();
+                Statement statement = query.getFirst();
+                ResultSet result = query.getSecond();
                 CountableMap<Long> messages = new CountableTreeMap<>();
 
                 try
@@ -239,5 +208,35 @@ public class TJBot
 
         client = null;
         executorService = null;
+    }
+
+    @SneakyThrows
+    private void loadTags()
+    {
+        CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
+
+        if (src != null)
+        {
+            URL jar = src.getLocation();
+            ZipInputStream zip = new ZipInputStream(jar.openStream());
+
+            while (true)
+            {
+                ZipEntry e = zip.getNextEntry();
+
+                if (e == null)
+                    break;
+
+                String name = e.getName();
+
+                if (name.matches("tags/.+\\.tag"))
+                {
+                    String tagName = name.substring("tags/".length()).replace(".tag", "");
+                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
+
+                    availableTags.put(tagName, content);
+                }
+            }
+        }
     }
 }
