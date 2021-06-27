@@ -1,0 +1,3 @@
+When someone in particular isn't currently helping you{{ user }} then you shouldn't ping them in order to request their help. Be patient when waiting for an answer in the channel you've already posted your question instead. People found helping on TJ server tend to be busy when not looking to provide assistance at the very moment, therefore respecting their valuable time needs to remain your priority if help is what you really need.
+
+If you were helping someone, or vice-versa, and they simply didn't see your message, then pinging them is warranted. Even so, mind that there are people who just prefer not to be pinged.

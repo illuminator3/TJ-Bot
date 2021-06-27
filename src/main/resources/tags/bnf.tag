@@ -1,0 +1,1 @@
+Backus-Naur Form (BNF) notation is used to define or describe the syntax of a computer language. To learn more about BNF and its syntax, see https://www.sciencedirect.com/topics/computer-science/backus-naur-form
