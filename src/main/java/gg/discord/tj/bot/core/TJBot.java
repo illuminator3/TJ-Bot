@@ -111,6 +111,8 @@ public class TJBot
                     message.getChannel().block().createMessage(tags.get(tag).replace("{{ user }}", user.isEmpty() ? "" : " " + user)).block();
                 }
             }
+            else if (messageContent.equals("^!"))
+                message.getChannel().block().createMessage("All available tags:\n" + String.join(", ", tags.keySet())).block();
         });
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
