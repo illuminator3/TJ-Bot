@@ -26,13 +26,11 @@ public class CommandHandler
     {
         String content = e.getMessage().getContent();
 
-        if (content.startsWith("^"))
+        if (content.startsWith("^") && content.length() > 2)
         {
             char commandCharacter = content.substring(1).charAt(0);
-            Command command = commands.stream().filter(c -> c.getCommandCharacter() == commandCharacter).findAny().orElse(null);
 
-            if (command != null)
-                command.onExecute(buildContext(e));
+            commands.stream().filter(c -> c.getCommandCharacter() == commandCharacter).findAny().ifPresent(command -> command.onExecute(buildContext(e)));
         }
     }
 
