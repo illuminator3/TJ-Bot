@@ -133,6 +133,8 @@ public class TJBot
                                 .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)
                                 .asLong());
 
+                limit = Math.min(limit, 50);
+
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
                 Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user FROM messages");
