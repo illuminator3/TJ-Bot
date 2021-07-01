@@ -8,6 +8,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -25,6 +26,7 @@ import gg.discord.tj.bot.util.Tuple;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import reactor.core.publisher.Mono;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -39,6 +41,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -133,7 +136,7 @@ public class TJBot
                                 .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)
                                 .asLong());
 
-                limit = Math.min(limit, 50);
+                limit = Math.min(limit, 20);
 
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
@@ -159,10 +162,24 @@ public class TJBot
                         .stream()
                         .sorted(ENTRY_LONG_VALUE_COMPARATOR)
                         .limit(limit)
-                        .map(entry -> Map.entry(
-                            guild.getMemberById(Snowflake.of(entry.getKey())).block().getTag(),
-                            entry.getValue()
-                        ))
+                        .map(entry -> {
+//                            AtomicReference<String> tag = new AtomicReference<>("Error#0000");
+                            String tag = "Error#0000";
+
+//                            guild.getMemberById(Snowflake.of(entry.getKey())).doOnSuccess(user -> {
+//                                tag.set(user.getTag());
+//                            });
+
+                            try
+                            {
+                                tag = guild.getMemberById(Snowflake.of(entry.getKey())).block().getTag();
+                            } catch (Throwable ignored) {} // I don't know how to fix this atm
+
+                            return Map.entry(
+                                tag,
+                                entry.getValue()
+                            );
+                        })
                         .map(entry -> new StringBuilder("#")
                                 .append(pos.incrementAndGet())
                                 .append(" ")
