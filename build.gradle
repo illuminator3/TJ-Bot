@@ -32,7 +32,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.20'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-    implementation 'com.discord4j:discord4j-core:3.1.5'
+    implementation 'com.discord4j:discord4j-core:3.1.6'
     implementation 'org.xerial:sqlite-jdbc:3.36.0'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
