@@ -3,12 +3,12 @@ package gg.discord.tj.bot.core;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.domain.InteractionCreateEvent;
+import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -26,7 +26,6 @@ import gg.discord.tj.bot.util.Tuple;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import reactor.core.publisher.Mono;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -41,7 +40,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -117,15 +115,15 @@ public class TJBot
         ).forEach(commandHandler::registerCommand);
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
-            if (e.getCommandName().equals("tophelpers"))
+            ApplicationCommandInteraction commandInteraction = e.getInteraction().getCommandInteraction().orElseThrow();
+
+            if (commandInteraction.getName().orElseThrow().equals("tophelpers"))
             {
                 e.acknowledge().block();
 
                 Guild guild = e.getInteraction().getGuild().block();
 
-                Optional<ApplicationCommandInteractionOption> limitOption = e.getInteraction()
-                        .getCommandInteraction()
-                        .getOption("limit");
+                Optional<ApplicationCommandInteractionOption> limitOption = commandInteraction.getOption("limit");
 
                 if (limitOption.isEmpty())
                     throw new RuntimeException("Unexpected exception");
