@@ -9,6 +9,8 @@ import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -97,9 +99,16 @@ public class TJBot
                 .login()
                 .block()).on(MessageCreateEvent.class).subscribe(e -> {
                     Optional<Snowflake> guildId = e.getGuildId();
+                    Message message = e.getMessage();
+                    Optional<Member> member = e.getMember();
 
-                    if (e.getMember().isPresent() && guildId.isPresent() && guildId.get().asLong() == 272761734820003841L && HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) e.getMessage().getChannel().block()).getName()).find())
-                        Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", e.getMember().get().getId().asLong(), System.currentTimeMillis());
+                    if (member.isPresent() &&
+                            guildId.isPresent() &&
+                            guildId.get().asLong() == 272761734820003841L &&
+                            message.getContent().matches("^(?![?>]tag free).*$") &&
+                            HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) message.getChannel().block()).getName()).find()
+                    )
+                        Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", member.get().getId().asLong(), System.currentTimeMillis());
                 });
 
         loadTags();
@@ -122,7 +131,6 @@ public class TJBot
                 e.acknowledge().block();
 
                 Guild guild = e.getInteraction().getGuild().block();
-
                 Optional<ApplicationCommandInteractionOption> limitOption = commandInteraction.getOption("limit");
 
                 if (limitOption.isEmpty())
