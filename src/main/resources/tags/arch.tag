@@ -1,0 +1,1 @@
+Doppey, the owner of the server, created @Arch btw {{ user }}. The source of this bot can be found at https://github.com/Doppeey/Inorichan-VSC
