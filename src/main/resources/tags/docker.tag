@@ -1,0 +1,10 @@
+Docker is kinda like virtual machine with much less overhead than virtual machine {{ user }}. Docker is more and more becoming industry standard, really because it simplifies some stuff like:
+
+Technically, docker is built on top of 2 linux kernel features cgroups and namespaces ( https://en.wikipedia.org/wiki/Cgroups ) which allow you to isolate and limit resources and memory for specific process. (docker on windows is pretty much workaround for now: it runs small linux vm which does this).
+
+We call that isolated process container and it works the way that you make memory snapshot of whatever you need, lets say that you need MySQL 3.6 for your project. Docker allows you to setup your MySQL (or any other dependency) in isolated environment and make memory snapshot of it which is called image . There are bunch of predefined images on docker hub (such as MySQL, compilers, maven etc...). You can make your own images by setting up your Dockerfiles (which have declarative syntax to define what you need to have in your container) and you can use (and extend) ones from docker hub.
+The deal is, that all that docker needs to do when running a container is to take that memory snapshot and run isolated process that uses that particular memory - its startup is pretty fast and lets everyone have same environment. Also, its nice if you need to try something out but you don't want to install it on your machine - like run some script? Or when you are running tests. Or if you need 2 different versions of same dependency for your projects (one Mysql 3 and another mysql 8) - very easy with docker, just pull another image.
+
+When deploying your service - just deploy your image. It also lets you have same development environment as production environment. "Works on my machine" is no more.
+
+Also, docker is much used in cloud development - Kubernetes and stuff, but that's another thing.

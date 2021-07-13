@@ -1,0 +1,1 @@
+Questions seeking debugging help ("why isn't this code working?") must include the desired behavior, a specific problem or error and the shortest code necessary to reproduce it in the question itself. Questions without a clear problem statement are not useful to other readers {{ user }}. See: https://stackoverflow.com/help/mcve
