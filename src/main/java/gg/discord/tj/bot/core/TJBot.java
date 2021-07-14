@@ -167,18 +167,17 @@ public class TJBot
                 StringBuilder message = messages.entrySet()
                         .stream()
                         .sorted(ENTRY_LONG_VALUE_COMPARATOR)
-                        .limit(limit)
                         .map(entry -> {
-//                            AtomicReference<String> tag = new AtomicReference<>("Error#0000");
                             String tag = "Error#0000";
-
-//                            guild.getMemberById(Snowflake.of(entry.getKey())).doOnSuccess(user -> {
-//                                tag.set(user.getTag());
-//                            });
 
                             try
                             {
-                                tag = guild.getMemberById(Snowflake.of(entry.getKey())).block().getTag();
+                                Member member = guild.getMemberById(Snowflake.of(entry.getKey())).block();
+
+                                if (member.isBot()) // we don't want bots in our top helper list
+                                    return null;
+
+                                tag = member.getTag();
                             } catch (Throwable ignored) {} // I don't know how to fix this atm
 
                             return Map.entry(
@@ -186,6 +185,8 @@ public class TJBot
                                 entry.getValue()
                             );
                         })
+                        .filter(Objects::nonNull)
+                        .limit(limit)
                         .map(entry -> new StringBuilder("#")
                                 .append(pos.incrementAndGet())
                                 .append(" ")
