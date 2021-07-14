@@ -90,7 +90,8 @@ public class TJBot
         Database.DATABASE.update("""
                 CREATE TABLE IF NOT EXISTS messages (
                     user long,
-                    timestamp long
+                    timestamp long,
+                    guild long
                 );
                 """);
 
@@ -104,11 +105,10 @@ public class TJBot
 
                     if (member.isPresent() &&
                             guildId.isPresent() &&
-                            guildId.get().asLong() == 272761734820003841L &&
                             message.getContent().matches("^(?![?>]tag free).*$") &&
                             HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) message.getChannel().block()).getName()).find()
                     )
-                        Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp) VALUES (%d, %d)", member.get().getId().asLong(), System.currentTimeMillis());
+                        Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp, guild) VALUES (%d, %d, %d)", member.get().getId().asLong(), System.currentTimeMillis(), guildId.get().asLong());
                 });
 
         loadTags();
@@ -146,7 +146,7 @@ public class TJBot
 
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
-                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user FROM messages");
+                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user FROM messages WHERE guild = %d", guild.getId().asLong());
                 Statement statement = query.getFirst();
                 ResultSet result = query.getSecond();
                 CountableMap<Long> messages = new CountableTreeMap<>();
@@ -167,6 +167,7 @@ public class TJBot
                 StringBuilder message = messages.entrySet()
                         .stream()
                         .sorted(ENTRY_LONG_VALUE_COMPARATOR)
+                        .parallel()
                         .map(entry -> {
                             String tag = "Error#0000";
 
@@ -186,6 +187,7 @@ public class TJBot
                             );
                         })
                         .filter(Objects::nonNull)
+                        .sequential()
                         .limit(limit)
                         .map(entry -> new StringBuilder("#")
                                 .append(pos.incrementAndGet())
