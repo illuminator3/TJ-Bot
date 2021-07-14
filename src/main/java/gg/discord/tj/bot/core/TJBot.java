@@ -167,7 +167,6 @@ public class TJBot
                 StringBuilder message = messages.entrySet()
                         .stream()
                         .sorted(ENTRY_LONG_VALUE_COMPARATOR)
-                        .parallel()
                         .map(entry -> {
                             String tag = "Error#0000";
 
@@ -187,7 +186,6 @@ public class TJBot
                             );
                         })
                         .filter(Objects::nonNull)
-                        .sequential()
                         .limit(limit)
                         .map(entry -> new StringBuilder("#")
                                 .append(pos.incrementAndGet())
