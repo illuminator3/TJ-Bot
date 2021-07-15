@@ -6,6 +6,8 @@ import gg.discord.tj.bot.app.Application;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -15,18 +17,23 @@ public class TagCommand
     implements Command
 {
     @Override
-    public char getCommandCharacter()
+    public String getName()
     {
-        return '?';
+        return "tag";
+    }
+
+    @Override
+    public Collection<String> getAliasses()
+    {
+        return List.of("t", "?");
     }
 
     @Override
     public void onExecute(CommandExecutionContext context)
     {
         Message message = context.getMessage();
-        String messageContent = message.getContent();
         Stream<User> mentions = message.getUserMentions().toStream();
-        String tag = messageContent.split(" ")[0].substring(2);
+        String tag = context.getContent().split(" ")[0];
         Map<String, String> tags = Application.BOT_INSTANCE.getAvailableTags();
 
         if (tags.containsKey(tag))

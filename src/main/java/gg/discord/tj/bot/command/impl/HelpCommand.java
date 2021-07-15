@@ -4,6 +4,8 @@ import gg.discord.tj.bot.app.Application;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -11,9 +13,15 @@ public class HelpCommand
     implements Command
 {
     @Override
-    public char getCommandCharacter()
+    public String getName()
     {
-        return '$';
+        return "help";
+    }
+
+    @Override
+    public Collection<String> getAliasses()
+    {
+        return List.of("h");
     }
 
     @Override
@@ -24,7 +32,7 @@ public class HelpCommand
                 .block())
                 .createMessage("""
                         -- Commands
-                        """ + Application.BOT_INSTANCE.getCommandHandler().getCommands().stream().map(c -> c.getClass().getSimpleName() + " (^" + c.getCommandCharacter() + ")").collect(Collectors.joining("\n"))
+                        """ + Application.BOT_INSTANCE.getCommandHandler().getCommands().stream().map(c -> c.getClass().getSimpleName() + " (^" + c.getName() + ")").collect(Collectors.joining("\n"))
                 )
                 .block();
     }

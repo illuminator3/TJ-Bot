@@ -1,7 +1,10 @@
 package gg.discord.tj.bot.command;
 
+import java.util.Collection;
+
 public interface Command
 {
-    char getCommandCharacter();
+    String getName();
+    Collection<String> getAliasses();
     void onExecute(CommandExecutionContext context);
 }

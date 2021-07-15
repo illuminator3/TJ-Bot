@@ -9,8 +9,6 @@ import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class SyntaxCommand
@@ -19,9 +17,15 @@ public class SyntaxCommand
     private static final Formatter FORMATTER = new Formatter();
 
     @Override
-    public char getCommandCharacter()
+    public String getName()
     {
-        return 's';
+        return "syntax";
+    }
+
+    @Override
+    public Collection<String> getAliasses()
+    {
+        return List.of("s");
     }
 
     @Override

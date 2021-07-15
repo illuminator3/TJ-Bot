@@ -2,6 +2,7 @@ package gg.discord.tj.bot.command;
 
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.entity.Message;
 import lombok.Getter;
 
 import java.util.HashSet;
@@ -24,18 +25,33 @@ public class CommandHandler
 
     private void handleMessage(MessageCreateEvent e)
     {
-        String content = e.getMessage().getContent();
+        Message message = e.getMessage();
+        String content = message.getContent();
+        String[] s = content.split(" ");
 
-        if (content.startsWith("^") && content.length() >= 2)
+        if (s.length != 0)
         {
-            char commandCharacter = content.substring(1).charAt(0);
+            var ref = new Object()
+                      { String f = s[0]; };
 
-            commands.stream().filter(c -> c.getCommandCharacter() == commandCharacter).findAny().ifPresent(command -> command.onExecute(buildContext(e)));
+            if (ref.f.startsWith("^"))
+            {
+                ref.f = ref.f.substring(1);
+
+                Command cmd = commands.stream().filter(c -> c.getName().equals(ref.f) || c.getAliasses().contains(ref.f)).findAny().orElse(null);
+
+                if (cmd != null)
+                {
+                    CommandExecutionContext context = buildContext(e, ref.f);
+
+                    cmd.onExecute(context);
+                }
+            }
         }
     }
 
-    private CommandExecutionContext buildContext(MessageCreateEvent event)
+    private CommandExecutionContext buildContext(MessageCreateEvent event, String cmd)
     {
-        return new CommandExecutionContext(event.getMessage(), event.getGuild().block(), event.getMember().orElseThrow());
+        return new CommandExecutionContext(event.getMessage(), event.getMessage().getContent().substring(("^" + cmd).length()).trim(), event.getGuild().block(), event.getMember().orElseThrow());
     }
 }
