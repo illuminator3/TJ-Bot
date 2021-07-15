@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
-public class CompileCommand
+public class SyntaxCommand
     implements Command
 {
     private static final Formatter FORMATTER = new Formatter();
@@ -21,7 +21,7 @@ public class CompileCommand
     @Override
     public char getCommandCharacter()
     {
-        return 'c';
+        return 's';
     }
 
     @Override
@@ -32,7 +32,7 @@ public class CompileCommand
         Optional<MessageReference> referenceOpt = message.getMessageReference();
 
         if (referenceOpt.isEmpty())
-            channel.createMessage("This command works by replying to a message containing unformatted code").block();
+            channel.createMessage("This command works by replying to a message containing code").block();
         else
         {
             Message replied = channel.getMessageById(referenceOpt.get().getMessageId().get()).block();
@@ -61,7 +61,7 @@ public class CompileCommand
             }
 
             if (result.isEmpty() || works)
-                channel.createMessage("The code from " + replied.getAuthorAsMember().block().getMention() + " requested by " + message.getAuthorAsMember().block().getMention() + " will successfully compile").block();
+                channel.createMessage(replied.getAuthorAsMember().block().getMention() + "'s code requested by " + message.getAuthorAsMember().block().getMention() + " has valid Syntax").block();
             else
                 channel.createMessage(replied.getAuthorAsMember().block().getMention() + "'s code requested by " + message.getAuthorAsMember().block().getMention() + " will not compile:```\n" + result.get().getMessage() + "\n```").block();
         }
