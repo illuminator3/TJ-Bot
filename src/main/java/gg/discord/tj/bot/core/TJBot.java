@@ -120,7 +120,8 @@ public class TJBot
             new TagListCommand(),
             new HelpCommand(),
             new FormatCommand(),
-            new SyntaxCommand()
+            new SyntaxCommand(),
+            new LinesCommand()
         ).forEach(commandHandler::registerCommand);
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {

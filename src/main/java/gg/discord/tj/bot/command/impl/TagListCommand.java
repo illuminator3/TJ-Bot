@@ -4,15 +4,23 @@ import gg.discord.tj.bot.app.Application;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 public class TagListCommand
     implements Command
 {
     @Override
-    public char getCommandCharacter()
+    public String getName()
     {
-        return '!';
+        return "taglist";
+    }
+
+    @Override
+    public Collection<String> getAliasses()
+    {
+        return List.of("tags");
     }
 
     @Override
