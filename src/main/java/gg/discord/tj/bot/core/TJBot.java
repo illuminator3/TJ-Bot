@@ -18,9 +18,7 @@ import discord4j.rest.RestClient;
 import discord4j.rest.service.ApplicationService;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.command.CommandHandler;
-import gg.discord.tj.bot.command.impl.HelpCommand;
-import gg.discord.tj.bot.command.impl.TagCommand;
-import gg.discord.tj.bot.command.impl.TagListCommand;
+import gg.discord.tj.bot.command.impl.*;
 import gg.discord.tj.bot.db.Database;
 import gg.discord.tj.bot.util.CountableMap;
 import gg.discord.tj.bot.util.CountableTreeMap;
@@ -120,7 +118,9 @@ public class TJBot
         Set.of(
             new TagCommand(),
             new TagListCommand(),
-            new HelpCommand()
+            new HelpCommand(),
+            new FormatCommand(),
+            new CompileCommand()
         ).forEach(commandHandler::registerCommand);
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
