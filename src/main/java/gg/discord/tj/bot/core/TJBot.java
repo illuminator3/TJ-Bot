@@ -5,13 +5,16 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.MessageReference;
 import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.GuildEmoji;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -109,6 +112,13 @@ public class TJBot
                         Database.DATABASE.safeUpdate("INSERT INTO messages (user, timestamp, guild) VALUES (%d, %d, %d)", member.get().getId().asLong(), System.currentTimeMillis(), guildId.get().asLong());
                 });
 
+//        client.on(MessageCreateEvent.class).subscribe(e -> {
+//            Message message = e.getMessage();
+//
+//            if (message.getUserMentions().toStream().anyMatch(u -> u.getId().equals(client.getSelfId())))
+//                message.addReaction(ReactionEmoji.of(499232301356679169L, "Pingsock", false)).block();
+//        }); TODO: check if the mention wasn't a reply to the bot
+
         loadTags();
 
         commandHandler = new CommandHandler();
@@ -121,7 +131,8 @@ public class TJBot
             new HelpCommand(),
             new FormatCommand(),
             new SyntaxCommand(),
-            new LinesCommand()
+            new LinesCommand(),
+            new ProcessCommand()
         ).forEach(commandHandler::registerCommand);
 
         client.on(InteractionCreateEvent.class).subscribe(e -> {
