@@ -154,7 +154,7 @@ public class TJBot
 
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
-                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user, count(*) FROM messages WHERE guild = %d GROUP BY user ORDER BY count(*) DESC LIMIT %d", guild.getId().asLong(), limit * 1.5d);
+                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user, count(*) FROM messages WHERE guild = %d GROUP BY user ORDER BY count(*) DESC LIMIT %d", guild.getId().asLong(), (int) (limit * 1.5d));
                 Statement statement = query.getFirst();
                 ResultSet result = query.getSecond();
                 Map<String, Long> messages = new LinkedHashMap<>();
