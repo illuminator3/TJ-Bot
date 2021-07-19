@@ -5,16 +5,13 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.MessageReference;
 import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.GuildEmoji;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -23,14 +20,13 @@ import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.command.CommandHandler;
 import gg.discord.tj.bot.command.impl.*;
 import gg.discord.tj.bot.db.Database;
-import gg.discord.tj.bot.util.CountableMap;
-import gg.discord.tj.bot.util.CountableTreeMap;
 import gg.discord.tj.bot.util.Tuple;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
@@ -158,19 +154,21 @@ public class TJBot
 
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
-                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user FROM messages WHERE guild = %d", guild.getId().asLong());
+                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user, count(*) FROM messages WHERE guild = %d GROUP BY user ORDER BY count(*) DESC", guild.getId().asLong());
                 Statement statement = query.getFirst();
                 ResultSet result = query.getSecond();
-                CountableMap<Long> messages = new CountableTreeMap<>();
+                Map<String, Long> messages = new LinkedHashMap<>();
 
-                try
-                {
-                    while (result.next())
-                        messages.count(result.getLong(1));
-
+                try {
+                    while (result.next()) {
+                        var user = guild.getMemberById(Snowflake.of(result.getLong(1))).block();
+                        var msgCount = result.getLong(2);
+                        if (!user.isBot()) {
+                            messages.put(user.getTag(), msgCount);
+                        }
+                    }
                     statement.close();
-                } catch (SQLException ex)
-                {
+                } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
 
@@ -178,26 +176,6 @@ public class TJBot
 
                 StringBuilder message = messages.entrySet()
                         .stream()
-                        .sorted(ENTRY_LONG_VALUE_COMPARATOR)
-                        .map(entry -> {
-                            String tag = "Error#0000";
-
-                            try
-                            {
-                                Member member = guild.getMemberById(Snowflake.of(entry.getKey())).block();
-
-                                if (member.isBot()) // we don't want bots in our top helper list
-                                    return null;
-
-                                tag = member.getTag();
-                            } catch (Throwable ignored) {} // I don't know how to fix this atm
-
-                            return Map.entry(
-                                tag,
-                                entry.getValue()
-                            );
-                        })
-                        .filter(Objects::nonNull)
                         .limit(limit)
                         .map(entry -> new StringBuilder("#")
                                 .append(pos.incrementAndGet())
