@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class TagListCommand
     implements Command
@@ -33,7 +34,9 @@ public class TagListCommand
     @Override
     public void onExecute(CommandExecutionContext context)
     {
-        var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream().sorted().toList();
+        var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream()
+                .sorted()
+                .collect(Collectors.toList());
         var noOfDisplayRows = sortedListOfAvailableTags.size() % NO_OF_DISPLAY_COLUMNS == 0 ?
                 sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS :
                 (sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS) + 1;
