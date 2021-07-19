@@ -161,11 +161,14 @@ public class TJBot
 
                 try {
                     while (result.next()) {
-                        var user = guild.getMemberById(Snowflake.of(result.getLong(1))).block();
-                        var msgCount = result.getLong(2);
-                        if (!user.isBot()) {
-                            messages.put(user.getTag(), msgCount);
-                        }
+                        try
+                        {
+                            var user = guild.getMemberById(Snowflake.of(result.getLong(1))).block();
+                            var msgCount = result.getLong(2);
+                            if (!user.isBot()) {
+                                messages.put(user.getTag(), msgCount);
+                            }
+                        } catch (Exception ignored) {}
                     }
                     statement.close();
                 } catch (SQLException ex) {
