@@ -1,0 +1,1 @@
+All message, **including** `?tag free`, are premade messages that do not change. This means `?tag free` will always say the same message no matter what. They are used to have easy copy/paste responses to simple queries and nothing more.
