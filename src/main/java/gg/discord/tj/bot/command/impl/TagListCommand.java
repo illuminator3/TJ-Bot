@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class TagListCommand
     implements Command
 {
-    private static final int NO_OF_DISPLAY_COLUMNS = 8;
+    private static final int NO_OF_DISPLAY_COLUMNS = 3;
     private static final String MESSAGE_TEMPLATE = "All available tags:\n```\n%s\n```";
 
     @Override
