@@ -27,7 +27,7 @@ public class TagListCommand
     public void onExecute(CommandExecutionContext context)
     {
         Objects.requireNonNull(context.getMessage().getChannel().block())
-                .createMessage("All available tags:\n" + String.join(", ", Application.BOT_INSTANCE.getAvailableTags().keySet()))
+                .createMessage("All available tags:\n" + String.join(", ", Application.BOT_INSTANCE.getAvailableTags().keySet().stream().sorted().toList()))
                 .block();
     }
 }
