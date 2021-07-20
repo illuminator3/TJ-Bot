@@ -31,7 +31,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
@@ -48,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static gg.discord.tj.bot.util.MessageTemplate.PAINTEXT_MESSAGE_TEMPLATE;
+import static gg.discord.tj.bot.util.MessageTemplate.PLAINTEXT_MESSAGE_TEMPLATE;
 
 @SuppressWarnings("ConstantConditions")
 @RequiredArgsConstructor
@@ -192,10 +191,10 @@ public class TJBot
                 var columnData = List.<ColumnData<List<String>>>of(
                         new Column().with(row -> row.get(0)),
                         new Column().header("Name").dataAlign(HorizontalAlign.LEFT).with(row -> row.get(1)),
-                        new Column().header("Msg Count(last 30 days)").with(row -> row.get(2))
+                        new Column().header("Message Count (in the last 30 days)").with(row -> row.get(2))
                 );
                 var message = String.format(
-                        PAINTEXT_MESSAGE_TEMPLATE,
+                        PLAINTEXT_MESSAGE_TEMPLATE,
                         topHelpersList.isEmpty() ? NO_ENTRIES : AsciiTable.getTable(characters, topHelpersList, columnData)
                 );
                 e.getInteractionResponse().createFollowupMessage(message).block();
