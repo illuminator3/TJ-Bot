@@ -10,8 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public enum DatabaseManager {
     INSTANCE;
-
-    private final ConfigurationContext configurationContext = ConfigurationContext.INSTANCE;
+    
     private final AtomicReference<Connection> connectionRef = new AtomicReference<>();
 
     @SneakyThrows
