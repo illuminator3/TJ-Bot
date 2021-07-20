@@ -13,11 +13,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static gg.discord.tj.bot.util.MessageTemplate.TAGLIST_MESSAGE_TEMPLATE;
+
 public class TagListCommand
     implements Command
 {
     private static final int NO_OF_DISPLAY_COLUMNS = 3;
-    private static final String MESSAGE_TEMPLATE = "All available tags:\n```\n%s\n```";
 
     @Override
     public String getName()
@@ -48,7 +49,7 @@ public class TagListCommand
             displayDataArray[i++ % noOfDisplayRows][i % noOfDisplayRows == 0 ? j++ : j] = tag;
         }
         Objects.requireNonNull(context.getMessage().getChannel().block())
-                .createMessage(String.format(MESSAGE_TEMPLATE, AsciiTable.getTable(
+                .createMessage(String.format(TAGLIST_MESSAGE_TEMPLATE, AsciiTable.getTable(
                         AsciiTable.NO_BORDERS, columns, displayDataArray)))
                 .block();
     }
