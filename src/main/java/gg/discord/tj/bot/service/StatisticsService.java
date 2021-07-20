@@ -23,43 +23,54 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
-public final class StatisticsService {
+public final class StatisticsService
+{
     private final StatisticsRepository repository = StatisticsRepository.INSTANCE;
     private static final Pattern HELP_CHANNEL_NAME_PATTERN = Pattern.compile("help|review");
     private static final ApplicationCommandInteractionOptionValue APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10 =
             new ApplicationCommandInteractionOptionValue(null, null, ApplicationCommandOptionType.INTEGER.getValue(), "10");
 
-    public void init() {
-        try {
+    public void init()
+    {
+        try
+        {
             repository.init();
-        } catch (SQLException throwables) {
+        } catch (SQLException throwables)
+        {
             log.error(throwables.getMessage(), throwables);
         }
     }
 
-    public void save(MessageCreateEvent e) {
+    public void save(MessageCreateEvent e)
+    {
         Optional<Snowflake> guildId = e.getGuildId();
         Message message = e.getMessage();
         Optional<Member> member = e.getMember();
 
         if (member.isPresent() &&
-                !member.get().isBot() &&
-                guildId.isPresent() &&
-                message.getContent().matches("^(?![?>]tag free).*$") &&
-                HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) message.getChannel().block()).getName()).find()
-        ) {
-            try {
-                var rowCount = repository.save(guildId.get().asLong(), member.get().getId().asLong());
+            !member.get().isBot() &&
+            guildId.isPresent() &&
+            message.getContent().matches("^(?![?>]tag free).*$") &&
+            HELP_CHANNEL_NAME_PATTERN.matcher(((TextChannel) message.getChannel().block()).getName()).find()
+        )
+        {
+            try
+            {
+                int rowCount = repository.save(guildId.get().asLong(), member.get().getId().asLong());
+
                 log.debug("{} message event saved for [GUILD={}, USER={}]", rowCount, guildId.get().asLong(), member.get().getId().asLong());
-            } catch (SQLException throwables) {
+            } catch (SQLException throwables)
+            {
                 log.error(throwables.getMessage(), throwables);
             }
         }
     }
 
-    public List<List<String>> topNHelpers(InteractionCreateEvent e) {
-        var topNHelpers = new ArrayList<List<String>>();
+    public List<List<String>> topNHelpers(InteractionCreateEvent e)
+    {
+        List<List<String>> topNHelpers = new ArrayList<>();
         ApplicationCommandInteraction commandInteraction = e.getInteraction().getCommandInteraction().orElseThrow();
+
         e.acknowledge().block();
 
         Guild guild = e.getInteraction().getGuild().block();
@@ -69,28 +80,34 @@ public final class StatisticsService {
             throw new RuntimeException("Unexpected exception");
 
         int limit = Math.toIntExact(limitOption
-                .get()
-                .getValue()
-                .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)
-                .asLong());
+            .get()
+            .getValue()
+            .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)
+            .asLong());
 
         limit = Math.min(limit, 20);
+
         Function<List<List<Long>>, List<List<String>>> enhanceDataFrame = df ->
             df.stream()
-                    .map(row ->
-                        List.of(String.valueOf(row.get(0)),
-                                guild.getMemberById(Snowflake.of(row.get(1))).block().getTag(),
-                                String.valueOf(row.get(2)))
-                    ).collect(Collectors.toList());
-        try {
-            var rowCount = repository.purge(System.currentTimeMillis() - 2592000000L /* 30 days */);
+                .map(row ->
+                    List.of(String.valueOf(row.get(0)),
+                        guild.getMemberById(Snowflake.of(row.get(1))).block().getTag(), // FIXME guild.getMemberById(Snowflake.of(row.get(1))) can throw an exception
+                        String.valueOf(row.get(2)))
+                ).collect(Collectors.toList());
+        try
+        {
+            int rowCount = repository.purge(System.currentTimeMillis() - 2592000000L /* 30 days */);
+
             log.debug("{} rows deleted from table MESSAGES as a part of history cleanup", rowCount);
-            var topNHelpersForGuild = repository.topNHelpersForGuild(guild.getId().asLong(), limit);
-            topNHelpers = (ArrayList<List<String>>) enhanceDataFrame.apply(topNHelpersForGuild);
-        } catch (SQLException throwables) {
+
+            List<List<Long>> topNHelpersForGuild = repository.topNHelpersForGuild(guild.getId().asLong(), limit);
+
+            topNHelpers = enhanceDataFrame.apply(topNHelpersForGuild);
+        } catch (SQLException throwables)
+        {
             log.error(throwables.getMessage(), throwables);
-        } finally {
-            return topNHelpers;
         }
+
+        return topNHelpers;
     }
 }

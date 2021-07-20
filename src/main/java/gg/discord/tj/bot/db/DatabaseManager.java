@@ -7,25 +7,31 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.concurrent.atomic.AtomicReference;
 
-public enum DatabaseManager {
+public enum DatabaseManager
+{
     INSTANCE;
 
     private final AtomicReference<Connection> connectionRef = new AtomicReference<>();
 
     @SneakyThrows
-    public Connection establishConnection() {
-        var connection = connectionRef.get();
-        if (connection == null) {
+    public Connection establishConnection()
+    {
+        Connection connection = connectionRef.get();
+
+        if (connection == null)
+        {
             connection = DriverManager.getConnection("jdbc:sqlite:" + Path.of("tjdatabase.db").toFile().getCanonicalPath());
-            if (!connectionRef.compareAndSet(null, connection)) {
+
+            if (!connectionRef.compareAndSet(null, connection))
                 return connectionRef.get();
-            }
         }
+
         return connectionRef.get();
     }
 
     @SneakyThrows
-    public void disconnect() {
+    public void disconnect()
+    {
         connectionRef.get().close();
     }
 }

@@ -12,8 +12,6 @@ import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.rest.RestClient;
-import discord4j.rest.service.ApplicationService;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.command.CommandHandler;
 import gg.discord.tj.bot.command.impl.*;
@@ -25,12 +23,9 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.CodeSource;
-import java.sql.SQLException;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -71,8 +66,6 @@ public class TJBot
 
     private GatewayDiscordClient client;
     private ExecutorService executorService;
-    private RestClient restClient;
-    private long applicationId;
     private CommandHandler commandHandler;
 
     @SneakyThrows
@@ -81,32 +74,20 @@ public class TJBot
     {
         loadTags();
         initializeServices();
-        var client = registerDiscordClient();
+
+        client = registerDiscordClient();
+
         registerClientEvents(client);
         registerCommandHandler(client);
-        registerGlobalApplicationCommands(client);
 
         executorService = Executors.newCachedThreadPool();
-
-//        client.on(MessageCreateEvent.class).subscribe(e -> {
-//            Message message = e.getMessage();
-//
-//            if (message.getUserMentions().toStream().anyMatch(u -> u.getId().equals(client.getSelfId())))
-//                message.addReaction(ReactionEmoji.of(499232301356679169L, "Pingsock", false)).block();
-//        }); TODO: check if the mention wasn't a reply to the bot
-
-        executorService.submit(() -> {
-            while (!SCANNER.nextLine().equals("stop") && client != null);
+        executorService.submit(() ->  {
+            while (!SCANNER.nextLine().equals("stop") && client != null) ;
 
             if (client != null) reset();
 
             Runtime.getRuntime().exit(0);
         });
-
-        ApplicationService applicationService = (restClient = client.getRestClient()).getApplicationService();
-
-        applicationService.getGlobalApplicationCommands(applicationId = restClient.getApplicationId().block()).toStream().forEach(c -> applicationService.deleteGlobalApplicationCommand(applicationId, Long.parseLong(c.id())));
-        applicationService.createGlobalApplicationCommand(applicationId, TOP_HELPERS_COMMAND).block();
 
         client.onDisconnect().block();
     }
@@ -152,53 +133,56 @@ public class TJBot
         }
     }
 
-    private void initializeServices() throws IOException, SQLException {
+    private void initializeServices()
+    {
         STATISTICS_SERVICE.init();
     }
 
-    private GatewayDiscordClient registerDiscordClient() {
+    private GatewayDiscordClient registerDiscordClient()
+    {
         return DiscordClient.create(token)
-                .login()
-                .block();
+            .login()
+            .block();
     }
 
-    private void registerClientEvents(GatewayDiscordClient client) {
+    private void registerClientEvents(GatewayDiscordClient client)
+    {
         client.on(MessageCreateEvent.class).subscribe(STATISTICS_SERVICE::save);
-        client.on(InteractionCreateEvent.class).subscribe(e -> {
+        client.on(InteractionCreateEvent.class).subscribe(e ->  {
             ApplicationCommandInteraction commandInteraction = e.getInteraction().getCommandInteraction().orElseThrow();
 
             if (commandInteraction.getName().orElseThrow().equals("tophelpers"))
             {
-                var topNHelpers = STATISTICS_SERVICE.topNHelpers(e);
-                var characters = AsciiTable.BASIC_ASCII_NO_DATA_SEPARATORS_NO_OUTSIDE_BORDER;
-                var columnData = List.<ColumnData<List<String>>>of(
-                        new Column().with(row -> row.get(0)),
-                        new Column().header("Name").dataAlign(HorizontalAlign.LEFT).with(row -> row.get(1)),
-                        new Column().header("Message Count (in the last 30 days)").with(row -> row.get(2))
+                List<List<String>> topNHelpers = STATISTICS_SERVICE.topNHelpers(e);
+                Character[] characters = AsciiTable.BASIC_ASCII_NO_DATA_SEPARATORS_NO_OUTSIDE_BORDER;
+                List<ColumnData<List<String>>> columnData = List.of(
+                    new Column().with(row -> row.get(0)),
+                    new Column().header("Name").dataAlign(HorizontalAlign.LEFT).with(row -> row.get(1)),
+                    new Column().header("Message Count (in the last 30 days)").with(row -> row.get(2))
                 );
-                var message = String.format(
-                        PLAINTEXT_MESSAGE_TEMPLATE,
-                        topNHelpers.isEmpty() ? NO_ENTRIES : AsciiTable.getTable(characters, topNHelpers, columnData)
+                String message = String.format(
+                    PLAINTEXT_MESSAGE_TEMPLATE,
+                    topNHelpers.isEmpty() ? NO_ENTRIES : AsciiTable.getTable(characters, topNHelpers, columnData)
                 );
+
                 e.getInteractionResponse().createFollowupMessage(message).block();
             }
         });
     }
 
-    private void registerCommandHandler(GatewayDiscordClient client) {
-        var commandHandler = new CommandHandler();
+    private void registerCommandHandler(GatewayDiscordClient client)
+    {
+        commandHandler = new CommandHandler();
         commandHandler.init(client);
-        Set.of(
-                new TagCommand(),
-                new TagListCommand(),
-                new HelpCommand(),
-                new FormatCommand(),
-                new SyntaxCommand(),
-                new LinesCommand(),
-                new ProcessCommand()
-        ).forEach(commandHandler::registerCommand);
-    }
 
-    private void registerGlobalApplicationCommands(GatewayDiscordClient client) {
+        Set.of(
+            new TagCommand(),
+            new TagListCommand(),
+            new HelpCommand(),
+            new FormatCommand(),
+            new SyntaxCommand(),
+            new LinesCommand(),
+            new ProcessCommand()
+        ).forEach(commandHandler::registerCommand);
     }
 }
