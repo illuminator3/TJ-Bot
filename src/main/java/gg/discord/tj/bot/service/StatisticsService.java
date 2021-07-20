@@ -13,12 +13,15 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.db.StatisticsRepository;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -89,11 +92,17 @@ public final class StatisticsService
 
         Function<List<List<Long>>, List<List<String>>> enhanceDataFrame = df ->
             df.stream()
-                .map(row ->
-                    List.of(String.valueOf(row.get(0)),
-                        guild.getMemberById(Snowflake.of(row.get(1))).block().getTag(), // FIXME guild.getMemberById(Snowflake.of(row.get(1))) can throw an exception
-                        String.valueOf(row.get(2)))
-                ).collect(Collectors.toList());
+                .map(row -> {
+                    String tag = null;
+
+                    try
+                    {
+                        tag = guild.getMemberById(Snowflake.of(row.get(1))).block().getTag();
+                    } catch (Throwable ignored) {}
+
+                    return Arrays.asList(String.valueOf(row.get(0)), tag, String.valueOf(row.get(2)));
+                }
+                ).filter(l -> l.get(1) != null).collect(Collectors.toList());
         try
         {
             int rowCount = repository.purge(System.currentTimeMillis() - 2592000000L /* 30 days */);

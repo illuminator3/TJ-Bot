@@ -69,6 +69,7 @@ public enum StatisticsRepository
         {
             preparedStatement.setLong(1, userId);
             preparedStatement.setLong(2, guildId);
+
             rowCount = preparedStatement.executeUpdate();
         }
 
@@ -84,6 +85,7 @@ public enum StatisticsRepository
         try (PreparedStatement prepareStatement = connection.prepareStatement("DELETE FROM messages WHERE timestamp < ?"))
         {
             prepareStatement.setLong(1, olderThanInMillis);
+
             rowCount = prepareStatement.executeUpdate();
         }
 
