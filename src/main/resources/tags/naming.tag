@@ -11,4 +11,4 @@ _All lowercase_. Preferably the domain name backwards. Example: "google.com" ==>
 Followed by the project name. Example: Project "Builder" ==> `com.google.builder`
 
 __**Constants/Enum entries:**__
-_UPPER_SNAKE_CASE_. Where words are separated by underscores. Example: `RED_DOG`, `I_AM_THE_BEST`, `CONQUER_WORLD`
+_UPPER\_SNAKE\_CASE_. Where words are separated by underscores. Example: `RED_DOG`, `I_AM_THE_BEST`, `CONQUER_WORLD`
