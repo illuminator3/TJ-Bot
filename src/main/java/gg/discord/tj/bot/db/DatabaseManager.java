@@ -1,6 +1,5 @@
 package gg.discord.tj.bot.db;
 
-import gg.discord.tj.bot.util.ConfigurationContext;
 import lombok.SneakyThrows;
 
 import java.nio.file.Path;
@@ -10,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public enum DatabaseManager {
     INSTANCE;
-    
+
     private final AtomicReference<Connection> connectionRef = new AtomicReference<>();
 
     @SneakyThrows
