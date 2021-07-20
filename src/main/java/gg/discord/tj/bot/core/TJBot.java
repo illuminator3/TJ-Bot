@@ -1,5 +1,9 @@
 package gg.discord.tj.bot.core;
 
+import com.github.freva.asciitable.AsciiTable;
+import com.github.freva.asciitable.Column;
+import com.github.freva.asciitable.ColumnData;
+import com.github.freva.asciitable.HorizontalAlign;
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
@@ -24,6 +28,7 @@ import gg.discord.tj.bot.util.Tuple;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,21 +43,23 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static gg.discord.tj.bot.util.MessageTemplate.PAINTEXT_MESSAGE_TEMPLATE;
+
 @SuppressWarnings("ConstantConditions")
 @RequiredArgsConstructor
 @Getter
+@Slf4j
 public class TJBot
     implements Bot
 {
     private static final Pattern HELP_CHANNEL_NAME_PATTERN = Pattern.compile("help|review");
     private static final Comparator<Map.Entry<?, Long>> ENTRY_LONG_VALUE_COMPARATOR = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
-    private static final StringBuilder NO_ENTRIES_STRINGBUILDER = new StringBuilder("No entries");
+    private static final String NO_ENTRIES = "No entries";
     private static final Duration DURATION_30D = Duration.ofDays(30);
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final ApplicationCommandRequest TOP_HELPERS_COMMAND = ApplicationCommandRequest.builder()
@@ -154,44 +161,44 @@ public class TJBot
 
                 Database.DATABASE.safeUpdate("DELETE FROM messages WHERE timestamp < %d", System.currentTimeMillis() - 2592000000L /* 30 days */);
 
-                Tuple<Statement, ResultSet> query = Database.DATABASE.safeQuery("SELECT user, count(*) FROM messages WHERE guild = %d GROUP BY user ORDER BY count(*) DESC LIMIT %d", guild.getId().asLong(), (int) (limit * 1.5d));
+                Tuple<Statement, ResultSet> query = Database.DATABASE
+                        .safeQuery("""
+                                WITH TOPHELPERS(user, count) AS (
+                                    SELECT user, count(*) FROM messages WHERE guild = %d GROUP BY user ORDER BY count(*) DESC LIMIT %d
+                                ) SELECT ROW_NUMBER() OVER(ORDER BY count DESC) as '#', user, count from TOPHELPERS
+                                """, guild.getId().asLong(), limit);
                 Statement statement = query.getFirst();
                 ResultSet result = query.getSecond();
-                Map<String, Long> messages = new LinkedHashMap<>();
-
+                var topHelpersList = new ArrayList<List<String>>();
                 try {
                     while (result.next()) {
                         try
                         {
-                            var user = guild.getMemberById(Snowflake.of(result.getLong(1))).block();
-                            var msgCount = result.getLong(2);
+                            var serialId = String.valueOf(result.getLong("#"));
+                            var user = guild.getMemberById(Snowflake.of(result.getLong("user"))).block();
+                            var msgCount = String.valueOf(result.getLong("count"));
                             if (!user.isBot()) {
-                                messages.put(user.getTag(), msgCount);
+                                topHelpersList.add(List.of(serialId, user.getTag(), msgCount));
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                            log.error(ignored.getMessage(), ignored);
+                        }
                     }
                     statement.close();
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-
-                AtomicInteger pos = new AtomicInteger();
-
-                StringBuilder message = messages.entrySet()
-                        .stream()
-                        .limit(limit)
-                        .map(entry -> new StringBuilder("#")
-                                .append(pos.incrementAndGet())
-                                .append(" ")
-                                .append(entry.getKey())
-                                .append(" - ")
-                                .append(entry.getValue())
-                                .append(" messages in help channels in the last 30 days")
-                                .append("\n"))
-                        .reduce(StringBuilder::append)
-                        .orElse(NO_ENTRIES_STRINGBUILDER);
-
-                e.getInteractionResponse().createFollowupMessage(message.toString()).block();
+                var characters = com.github.freva.asciitable.AsciiTable.BASIC_ASCII_NO_DATA_SEPARATORS_NO_OUTSIDE_BORDER;
+                var columnData = List.<ColumnData<List<String>>>of(
+                        new Column().with(row -> row.get(0)),
+                        new Column().header("Name").dataAlign(HorizontalAlign.LEFT).with(row -> row.get(1)),
+                        new Column().header("Msg Count(last 30 days)").with(row -> row.get(2))
+                );
+                var message = String.format(
+                        PAINTEXT_MESSAGE_TEMPLATE,
+                        topHelpersList.isEmpty() ? NO_ENTRIES : AsciiTable.getTable(characters, topHelpersList, columnData)
+                );
+                e.getInteractionResponse().createFollowupMessage(message).block();
             }
         });
 
