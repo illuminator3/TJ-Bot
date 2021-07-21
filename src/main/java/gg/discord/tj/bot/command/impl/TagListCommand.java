@@ -27,7 +27,7 @@ public class TagListCommand
     }
 
     @Override
-    public Collection<String> getAliasses()
+    public Collection<String> getAliases()
     {
         return List.of("tags");
     }

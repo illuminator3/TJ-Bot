@@ -5,17 +5,21 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import lombok.Getter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 @Getter
 public class CommandHandler
 {
-    private final Set<Command> commands = new HashSet<>();
+    private final Map<String, Command> commands = new HashMap<>();
 
     public void registerCommand(Command command)
     {
-        commands.add(command);
+        commands.put(command.getName(), command);
+
+        command.getAliases().forEach(s -> commands.put(s, command));
     }
 
     public void init(GatewayDiscordClient client)
@@ -31,21 +35,15 @@ public class CommandHandler
 
         if (s.length != 0)
         {
-            var ref = new Object()
-                      { String f = s[0]; };
+            String commandRaw = s[0];
 
-            if (ref.f.startsWith("^"))
+            if (commandRaw.startsWith("^"))
             {
-                ref.f = ref.f.substring(1);
+                String commandName = commandRaw.substring(1);
 
-                Command cmd = commands.stream().filter(c -> c.getName().equals(ref.f) || c.getAliasses().contains(ref.f)).findAny().orElse(null);
-
-                if (cmd != null)
-                {
-                    CommandExecutionContext context = buildContext(e, ref.f);
-
-                    cmd.onExecute(context);
-                }
+                commands.computeIfPresent(commandName,
+                    extraIdentity((name, command) -> command.onExecute(buildContext(e, name)))
+                );
             }
         }
     }
@@ -53,5 +51,14 @@ public class CommandHandler
     private CommandExecutionContext buildContext(MessageCreateEvent event, String cmd)
     {
         return new CommandExecutionContext(event.getMessage(), event.getMessage().getContent().substring(("^" + cmd).length()).trim(), event.getGuild().block(), event.getMember().orElseThrow());
+    }
+
+    public static <A, B> BiFunction<A, B, B> extraIdentity(BiConsumer<A, B> consumer)
+    {
+        return (a, b) -> {
+            consumer.accept(a, b);
+
+            return b;
+        };
     }
 }

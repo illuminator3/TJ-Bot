@@ -5,6 +5,6 @@ import java.util.Collection;
 public interface Command
 {
     String getName();
-    Collection<String> getAliasses();
+    Collection<String> getAliases();
     void onExecute(CommandExecutionContext context);
 }

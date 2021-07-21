@@ -19,7 +19,7 @@ public class HelpCommand
     }
 
     @Override
-    public Collection<String> getAliasses()
+    public Collection<String> getAliases()
     {
         return List.of("h");
     }
