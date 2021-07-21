@@ -3,10 +3,13 @@ package gg.discord.tj.bot.command;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -14,12 +17,21 @@ import java.util.function.BiFunction;
 public class CommandHandler
 {
     private final Map<String, Command> commands = new HashMap<>();
+    @Getter(AccessLevel.PRIVATE)
+    private final Set<Command> commandSet = new HashSet<>(); // TODO improve this design
 
     public void registerCommand(Command command)
     {
         commands.put(command.getName(), command);
 
         command.getAliases().forEach(s -> commands.put(s, command));
+
+        commandSet.add(command);
+    }
+
+    public Set<Command> getCommandsAsSet()
+    {
+        return getCommandSet();
     }
 
     public void init(GatewayDiscordClient client)
