@@ -37,7 +37,7 @@ dependencies {
     implementation 'com.google.googlejavaformat:google-java-format:1.10.0'
     implementation 'com.github.freva:ascii-table:1.2.0'
 
-    implementation 'ch.qos.logback:logback-core:1.2.3'
+    implementation 'ch.qos.logback:logback-core:1.2.4'
     implementation 'org.slf4j:slf4j-api:1.7.30'
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.3'
 
