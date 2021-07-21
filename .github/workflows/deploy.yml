@@ -1,0 +1,21 @@
+name: Deploy
+
+on: 
+  push:
+    branches:
+     - master
+
+jobs:
+  hook:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Run the hook
+      id: FullHook
+      uses: ByRicardoSimoes/CustomHookAction@1.0.0
+      with:
+        repoUrl: 'https://github.com/illuminator3/TJ-Bot'
+        repoName: 'TJ-Bot'
+        targetIp: ${{ secrets.TARGET_IP }}
+        targetPort: ${{ secrets.TARGET_PORT }}
+    - name: Status of the Hook
+      run: echo "Status of the hook was ${{ steps.FullHook.outputs.status }}"
