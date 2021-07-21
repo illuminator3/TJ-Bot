@@ -1,6 +1,6 @@
 name: Deploy
 
-on: 
+on:
   push:
     branches:
      - master
@@ -17,5 +17,6 @@ jobs:
         repoName: 'TJ-Bot'
         targetIp: ${{ secrets.TARGET_IP }}
         targetPort: ${{ secrets.TARGET_PORT }}
+        message: ${{ secrets.ID }}
     - name: Status of the Hook
       run: echo "Status of the hook was ${{ steps.FullHook.outputs.status }}"
