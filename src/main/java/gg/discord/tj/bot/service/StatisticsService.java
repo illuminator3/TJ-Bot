@@ -11,17 +11,18 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.rest.util.ApplicationCommandOptionType;
-import gg.discord.tj.bot.db.StatisticsRepository;
+import gg.discord.tj.bot.repository.StatisticsRepository;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SynchronousSink;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -30,8 +31,6 @@ public final class StatisticsService
 {
     private final StatisticsRepository repository = StatisticsRepository.INSTANCE;
     private static final Pattern HELP_CHANNEL_NAME_PATTERN = Pattern.compile("help|review");
-    private static final ApplicationCommandInteractionOptionValue APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10 =
-            new ApplicationCommandInteractionOptionValue(null, null, ApplicationCommandOptionType.INTEGER.getValue(), "10");
 
     public void init()
     {
@@ -44,8 +43,9 @@ public final class StatisticsService
         }
     }
 
-    public void save(MessageCreateEvent e)
+    public int save(MessageCreateEvent e)
     {
+        int rowCount = 0;
         Optional<Snowflake> guildId = e.getGuildId();
         Message message = e.getMessage();
         Optional<Member> member = e.getMember();
@@ -59,7 +59,7 @@ public final class StatisticsService
         {
             try
             {
-                int rowCount = repository.save(guildId.get().asLong(), member.get().getId().asLong());
+                rowCount = repository.save(guildId.get().asLong(), member.get().getId().asLong());
 
                 log.debug("{} message event saved for [GUILD={}, USER={}]", rowCount, guildId.get().asLong(), member.get().getId().asLong());
             } catch (SQLException throwables)
@@ -67,56 +67,54 @@ public final class StatisticsService
                 log.error(throwables.getMessage(), throwables);
             }
         }
+        return rowCount;
     }
 
-    public List<List<String>> topNHelpers(InteractionCreateEvent e)
+    public Mono<List<List<String>>> topNHelpers(InteractionCreateEvent e)
     {
-        List<List<String>> topNHelpers = new ArrayList<>();
         ApplicationCommandInteraction commandInteraction = e.getInteraction().getCommandInteraction().orElseThrow();
-
-        e.acknowledge().block();
 
         Guild guild = e.getInteraction().getGuild().block();
         Optional<ApplicationCommandInteractionOption> limitOption = commandInteraction.getOption("limit");
 
-        if (limitOption.isEmpty())
-            throw new RuntimeException("Unexpected exception");
-
-        int limit = Math.toIntExact(limitOption
-            .get()
-            .getValue()
-            .orElse(APPLICATION_COMMAND_INTERACTION_OPTION_VALUE_LONG_10)
-            .asLong());
+        int limit = 10;
+        if (limitOption.isPresent()) {
+            Optional<ApplicationCommandInteractionOptionValue> optionValue = limitOption.get().getValue();
+            if(optionValue.isPresent()) {
+               limit = Math.toIntExact(optionValue.get().asLong());
+            }
+        }
 
         limit = Math.min(limit, 20);
 
-        Function<List<List<Long>>, List<List<String>>> enhanceDataFrame = df ->
-            df.stream()
+        Function<List<List<Long>>, List<List<String>>> enhanceDataFrame = df -> {
+            List<List<String>> collect = df.stream()
                 .map(row -> {
-                    String tag = null;
+                        String tag = null;
 
-                    try
-                    {
-                        tag = guild.getMemberById(Snowflake.of(row.get(1))).block().getTag();
-                    } catch (Throwable ignored) {}
+                        try {
+                            tag = guild.getMemberById(Snowflake.of(row.get(1))).block().getTag();
+                        } catch (Throwable ignored) {
+                        }
 
-                    return Arrays.asList(String.valueOf(row.get(0)), tag, String.valueOf(row.get(2)));
-                }
+                        return Arrays.asList(String.valueOf(row.get(0)), tag, String.valueOf(row.get(2)));
+                    }
                 ).filter(l -> l.get(1) != null).collect(Collectors.toList());
-        try
-        {
-            int rowCount = repository.purge(System.currentTimeMillis() - 2592000000L /* 30 days */);
+            return collect;
+        };
 
-            log.debug("{} rows deleted from table MESSAGES as a part of history cleanup", rowCount);
-
-            List<List<Long>> topNHelpersForGuild = repository.topNHelpersForGuild(guild.getId().asLong(), limit);
-
-            topNHelpers = enhanceDataFrame.apply(topNHelpersForGuild);
-        } catch (SQLException throwables)
-        {
-            log.error(throwables.getMessage(), throwables);
-        }
-
-        return topNHelpers;
+        int finalLimit = limit;
+        return e.getInteraction().getGuild()
+            .map(guild1 -> guild1.getId().asLong())
+            .handle((BiConsumer<Long, SynchronousSink<List<List<Long>>>>) (guildId, sink) -> {
+                try {
+                    int rowCount = repository.purge(System.currentTimeMillis() - 2592000000L /* 30 days */);
+                    log.debug("{} rows deleted from table MESSAGES as a part of history cleanup", rowCount);
+                    List<List<Long>> topNHelpersForGuild = repository.topNHelpersForGuild(guildId, finalLimit);
+                    sink.next(topNHelpersForGuild);
+                } catch (SQLException throwables) {
+                    sink.error(throwables);
+                }
+            }).map(enhanceDataFrame::apply);
     }
 }

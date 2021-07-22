@@ -1,4 +1,4 @@
-package gg.discord.tj.bot.db;
+package gg.discord.tj.bot.repository;
 
 import java.sql.*;
 import java.util.ArrayList;

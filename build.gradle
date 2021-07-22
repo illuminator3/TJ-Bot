@@ -1,18 +1,32 @@
 plugins {
     id 'java'
+    id 'application'
     id 'com.github.johnrengelman.shadow' version '7.0.0'
 }
 
 group 'gg.discord.tj'
 version '1.0'
 
-sourceCompatibility = JavaVersion.VERSION_15
-targetCompatibility = JavaVersion.VERSION_15
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'gg.discord.tj.bot.app.Application'
-    }
+application {
+      mainClass = 'gg.discord.tj.bot.app.Application'
+      applicationDefaultJvmArgs = ['--enable-preview',
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+                                   "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+      ]
+}
+
+tasks.withType(JavaCompile).each {
+    it.options.compilerArgs.add('--enable-preview')
 }
 
 shadowJar {
