@@ -19,7 +19,7 @@ public class HelpCommand
     }
 
     @Override
-    public Collection<String> getAliasses()
+    public Collection<String> getAliases()
     {
         return List.of("h");
     }
@@ -32,7 +32,7 @@ public class HelpCommand
                 .block())
                 .createMessage("""
                         -- Commands
-                        """ + Application.BOT_INSTANCE.getCommandHandler().getCommands().stream().map(c -> c.getClass().getSimpleName() + " (^" + c.getName() + ")").collect(Collectors.joining("\n"))
+                         """ + Application.BOT_INSTANCE.getCommandHandler().getCommandsAsSet().stream().map(c -> c.getClass().getSimpleName() + " (^" + c.getName() + ")").collect(Collectors.joining("\n"))
                 )
                 .block();
     }
