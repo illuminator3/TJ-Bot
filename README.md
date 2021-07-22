@@ -1,8 +1,8 @@
-# TogetherJava Bot
+re# TogetherJava Bot
 
 ### Conventions
 
-The source files of this project follow a modified version of the allman style. Please keep all things simple and readable. Using `var`/`val` should only be done if you can infer the type in your head.
+The source files of this project follow a modified version of the allman style. Please keep all things simple and readable. Please refrain from using `var`/`val`.
 
 ### Deployment
 

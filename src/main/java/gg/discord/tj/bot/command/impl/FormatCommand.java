@@ -67,7 +67,7 @@ public class FormatCommand
                 Map.entry(s -> "public class A{public<T>T b(){" + s + "}}", s -> s.substring("public class A {\n  public <T> T b() {".length(), s.length() - "\n  }\n}".length()).replaceAll(" {4}(.+)", "$1"))
         );
 
-        for (var phase : phases)
+        for (Map.Entry<Function<String, String>, Function<String, String>> phase : phases)
         {
             try
             {
