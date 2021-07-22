@@ -7,11 +7,10 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
-import gg.discord.tj.bot.util.Either;
+import gg.discord.tj.bot.util.Hastebin;
 import gg.discord.tj.bot.util.Tuple;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 public class FormatCommand
@@ -44,14 +43,27 @@ public class FormatCommand
         {
             Message replied = channel.getMessageById(referenceOpt.get().getMessageId().get()).block();
             String content = replied.getContent();
-            var formatted = format(content);
+            Tuple<Optional<String>, Optional<Throwable>> formatted = format(content);
             Optional<String> product = formatted.getFirst();
             Optional<Throwable> lastThrowable = formatted.getSecond();
 
             if (product.isEmpty())
                 channel.createMessage("An error occured while requesting " + replied.getAuthorAsMember().block().getMention() + "'s code:```\n" + lastThrowable.get().getMessage() + "\n```").block();
             else
-                channel.createMessage(replied.getAuthorAsMember().block().getMention() + "'s code requested by " + message.getAuthorAsMember().block().getMention() + ":```java\n" + product.get() + "\n```").block();
+            {
+                String result = product.get(), msg = replied.getAuthorAsMember().block().getMention() + "'s code requested by " + message.getAuthorAsMember().block().getMention() + ":```java\n" + result + "\n```";
+
+                if (msg.length() > 2000) // discord character limit
+                {
+                    Hastebin.paste("https://paste.md-5.net", result, false).whenComplete((link, thr) -> {
+                        if (thr != null)
+                            channel.createMessage("An error occured while uploading the formatted code. Try again later").block();
+                        else
+                            channel.createMessage(replied.getAuthorAsMember().block().getMention() + "'s code requested by " + message.getAuthorAsMember().block().getMention() + " was uploaded to " + link).block();
+                    });
+                }
+                else channel.createMessage(msg).block();
+            }
         }
     }
 
