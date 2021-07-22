@@ -1,4 +1,4 @@
-re# TogetherJava Bot
+# TogetherJava Bot
 
 ### Conventions
 
