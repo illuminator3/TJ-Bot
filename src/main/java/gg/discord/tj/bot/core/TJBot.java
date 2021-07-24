@@ -8,6 +8,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.message.MessageDeleteEvent;
 import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
@@ -168,6 +169,11 @@ public class TJBot
                 e.getInteractionResponse().createFollowupMessage(message).block();
             }
         });
+        client.on(MessageDeleteEvent.class).subscribe(e -> TagCommand.TAG_MESSAGE_CACHE.computeIfPresent(e.getMessageId(), (k, v) -> {
+            v.delete().block();
+
+            return null;
+        }));
     }
 
     private void registerCommandHandler(GatewayDiscordClient client)
