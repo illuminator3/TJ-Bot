@@ -33,6 +33,16 @@ public enum DiscordRepository {
         }
     }
 
+    public void reset() {
+        discordClientRef.get().logout().block();
+        discordClientRef.set(null);
+        applicationId.set(0L);
+    }
+
+    public Mono<Void> onDisconnect() {
+        return discordClientRef.get().onDisconnect();
+    }
+
     public Mono<Void> purgeAllGlobalApplicationCommands() {
         GatewayDiscordClient client = discordClientRef.get();
         ApplicationService applicationService = client.getRestClient().getApplicationService();
@@ -54,7 +64,7 @@ public enum DiscordRepository {
         return Mono.just(eventHandlers)
             .flatMapMany(Flux::fromIterable)
             .flatMap(eventHandler -> client.on(eventHandler.getEventType())
-                .log("Registered handler for event type: " + eventHandler.getEventType().getCanonicalName())
+                .log(String.format("(%s) %s", eventHandler.getEventType().getSimpleName(), eventHandler.getClass().getSimpleName()))
                 .flatMap(eventHandler::processEvent)
                 .onErrorResume(eventHandler::handleError)
             ).then();

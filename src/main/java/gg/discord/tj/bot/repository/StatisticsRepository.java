@@ -8,7 +8,7 @@ public enum StatisticsRepository
 {
     INSTANCE;
 
-    DatabaseManager databaseManager = DatabaseManager.INSTANCE;
+    final DatabaseManager databaseManager = DatabaseManager.INSTANCE;
 
     public void init()
         throws SQLException

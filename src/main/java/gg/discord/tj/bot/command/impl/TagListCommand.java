@@ -6,11 +6,11 @@ import com.github.freva.asciitable.HorizontalAlign;
 import gg.discord.tj.bot.app.Application;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
+import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static gg.discord.tj.bot.util.MessageTemplate.TAGLIST_MESSAGE_TEMPLATE;
@@ -33,7 +33,7 @@ public class TagListCommand
     }
 
     @Override
-    public void onExecute(CommandExecutionContext context)
+    public Mono<Void> onExecute(CommandExecutionContext context)
     {
         var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream()
                 .sorted()
@@ -48,9 +48,10 @@ public class TagListCommand
         for (String tag : sortedListOfAvailableTags) {
             displayDataArray[i++ % noOfDisplayRows][i % noOfDisplayRows == 0 ? j++ : j] = tag;
         }
-        Objects.requireNonNull(context.getMessage().getChannel().block())
-                .createMessage(String.format(TAGLIST_MESSAGE_TEMPLATE, AsciiTable.getTable(
-                        AsciiTable.NO_BORDERS, columns, displayDataArray)))
-                .block();
+        return context.message()
+            .getChannel()
+            .flatMap(channel -> channel == null ? Mono.empty() : channel.createMessage(String.format(TAGLIST_MESSAGE_TEMPLATE, AsciiTable.getTable(
+                AsciiTable.NO_BORDERS, columns, displayDataArray))))
+            .then();
     }
 }

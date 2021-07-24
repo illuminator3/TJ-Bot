@@ -16,6 +16,8 @@ public final class DiscordService {
     public void init(String token) {
         discordRepository.init(token);
     }
+    public void reset() { discordRepository.reset(); }
+    public Mono<Void> onDisconnect() { return discordRepository.onDisconnect(); }
 
     public Mono<Long> cleanRegisterGlobalApplicationCommand(ApplicationCommandRequest applicationCommandRequest) {
         return discordRepository.purgeAllGlobalApplicationCommands()

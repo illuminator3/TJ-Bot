@@ -1,6 +1,5 @@
 package gg.discord.tj.bot.core;
 
-import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -9,9 +8,9 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.ApplicationCommandOptionType;
 import gg.discord.tj.bot.command.CommandHandler;
 import gg.discord.tj.bot.command.GlobalTopHelpersApplicationCommand;
-import gg.discord.tj.bot.command.NotACommand;
 import gg.discord.tj.bot.command.impl.*;
 import gg.discord.tj.bot.domain.EventHandler;
+import gg.discord.tj.bot.repository.CommandRepository;
 import gg.discord.tj.bot.repository.DatabaseManager;
 import gg.discord.tj.bot.service.DiscordService;
 import gg.discord.tj.bot.service.StatisticsService;
@@ -21,6 +20,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.CodeSource;
@@ -41,6 +41,7 @@ public class TJBot
 {
     private static final DiscordService DISCORD_SERVICE = new DiscordService();
     private static final StatisticsService STATISTICS_SERVICE = new StatisticsService();
+    private final static CommandRepository COMMAND_REPOSITORY = CommandRepository.INSTANCE;
 
     private static final Duration DURATION_30D = Duration.ofDays(30);
     private static final Scanner SCANNER = new Scanner(System.in);
@@ -67,8 +68,17 @@ public class TJBot
     @Override
     public void start()
     {
+        Set.of(
+            new TagCommand(),
+            new TagListCommand(),
+            new HelpCommand(),
+            new FormatCommand(),
+            new SyntaxCommand(),
+            new LinesCommand(),
+            new ProcessCommand()
+        ).forEach(COMMAND_REPOSITORY::registerCommand);
         List<EventHandler<MessageCreateEvent>> msgCreateEventHandlers = List.of(
-            new NotACommand()
+            new CommandHandler()
         );
         List<EventHandler<InteractionCreateEvent>> interactionCreateEventHandlers = List.of(
             new GlobalTopHelpersApplicationCommand()
@@ -85,9 +95,6 @@ public class TJBot
                     .subscribe(unused -> log.info("Message create handlers initialized"));
             });
 
-        client = registerDiscordClient();
-        registerCommandHandler(client);
-
         executorService = Executors.newCachedThreadPool();
         executorService.submit(() ->  {
             while (!SCANNER.nextLine().equals("stop") && client != null) ;
@@ -97,13 +104,13 @@ public class TJBot
             Runtime.getRuntime().exit(0);
         });
 
-        client.onDisconnect().block();
+        DISCORD_SERVICE.onDisconnect().block();
     }
 
     @Override
     public void reset()
     {
-        client.logout().block();
+        DISCORD_SERVICE.reset();
         executorService.shutdown();
         DatabaseManager.INSTANCE.disconnect();
 
@@ -115,6 +122,21 @@ public class TJBot
     private void loadTags()
     {
         CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
+        var jarFile = new File(TJBot.class.getProtectionDomain().getCodeSource().getLocation().getPath());
+        if (jarFile.isFile()) {
+
+        } else {
+            var url = TJBot.class.getResource("/tags");
+            if (url != null) {
+                var files = new File(url.toURI()).listFiles();
+                for (File file : files) {
+                    var name = file.getName();
+                    String tagName = name.replace(".tag", "");
+                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("tags/" + name))).lines().collect(Collectors.joining("\n"));
+                    availableTags.put(tagName, content);
+                }
+            }
+        }
 
         if (src != null)
         {
@@ -145,28 +167,5 @@ public class TJBot
     {
         DISCORD_SERVICE.init(token);
         STATISTICS_SERVICE.init();
-    }
-
-    private GatewayDiscordClient registerDiscordClient()
-    {
-        return DiscordClient.create(token)
-            .login()
-            .block();
-    }
-
-    private void registerCommandHandler(GatewayDiscordClient client)
-    {
-        commandHandler = new CommandHandler();
-        commandHandler.init(client);
-
-        Set.of(
-            new TagCommand(),
-            new TagListCommand(),
-            new HelpCommand(),
-            new FormatCommand(),
-            new SyntaxCommand(),
-            new LinesCommand(),
-            new ProcessCommand()
-        ).forEach(commandHandler::registerCommand);
     }
 }

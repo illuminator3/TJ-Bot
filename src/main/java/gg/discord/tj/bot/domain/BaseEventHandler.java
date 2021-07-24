@@ -11,6 +11,7 @@ import java.lang.reflect.ParameterizedType;
 public abstract non-sealed class BaseEventHandler<T extends Event> implements EventHandler<T> {
     public static final StatisticsService STATISTICS_SERVICE = new StatisticsService();
 
+    @SuppressWarnings("unchecked")
     @SneakyThrows
     @Override
     public Class<T> getEventType() {
@@ -26,7 +27,7 @@ public abstract non-sealed class BaseEventHandler<T extends Event> implements Ev
         Mono<T> mono = Mono.just(event);
         if (event instanceof MessageCreateEvent createEvent) {
             mono = Mono.just(createEvent)
-                .map(STATISTICS_SERVICE::save)
+                .flatMap(STATISTICS_SERVICE::save)
                 .then(mono);
         }
         return mono;
