@@ -122,21 +122,6 @@ public class TJBot
     private void loadTags()
     {
         CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
-        var jarFile = new File(TJBot.class.getProtectionDomain().getCodeSource().getLocation().getPath());
-        if (jarFile.isFile()) {
-
-        } else {
-            var url = TJBot.class.getResource("/tags");
-            if (url != null) {
-                var files = new File(url.toURI()).listFiles();
-                for (File file : files) {
-                    var name = file.getName();
-                    String tagName = name.replace(".tag", "");
-                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("tags/" + name))).lines().collect(Collectors.joining("\n"));
-                    availableTags.put(tagName, content);
-                }
-            }
-        }
 
         if (src != null)
         {
