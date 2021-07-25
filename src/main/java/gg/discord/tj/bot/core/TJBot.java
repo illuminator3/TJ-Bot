@@ -104,29 +104,14 @@ public class TJBot
     @SneakyThrows
     private void loadTags()
     {
-        CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
-
-        if (src != null)
-        {
-            URL jar = src.getLocation();
-            ZipInputStream zip = new ZipInputStream(jar.openStream());
-
-            while (true)
-            {
-                ZipEntry e = zip.getNextEntry();
-
-                if (e == null)
-                    break;
-
-                String name = e.getName();
-
-                if (name.matches("tags/.+\\.tag"))
-                {
-                    String tagName = name.substring("tags/".length()).replace(".tag", "");
-                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
-
-                    availableTags.put(tagName, content);
-                }
+        URL url = TJBot.class.getResource("/tags");
+        if (url != null) {
+            File[] files = new File(url.toURI()).listFiles();
+            for (File file : files) {
+                var name = file.getName();
+                String tagName = name.replace(".tag", "");
+                String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("tags/" + name))).lines().collect(Collectors.joining("\n"));
+                availableTags.put(tagName, content);
             }
         }
     }
