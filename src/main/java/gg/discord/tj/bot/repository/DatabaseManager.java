@@ -20,7 +20,7 @@ public enum DatabaseManager
 
         if (connection == null)
         {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + Path.of("tjdatabase.db").toFile().getCanonicalPath());
+            connection = DriverManager.getConnection("jdbc:sqlite:" + Path.of("/var/tjbot/tjdatabase.db").toFile().getCanonicalPath());
 
             if (!connectionRef.compareAndSet(null, connection))
                 return connectionRef.get();

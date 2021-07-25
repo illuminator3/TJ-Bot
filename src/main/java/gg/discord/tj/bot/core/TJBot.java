@@ -60,10 +60,6 @@ public class TJBot
 
     private final String token;
 
-    private GatewayDiscordClient client;
-    private ExecutorService executorService;
-    private CommandHandler commandHandler;
-
     @SneakyThrows
     @Override
     public void start()
@@ -95,15 +91,6 @@ public class TJBot
                     .subscribe(unused -> log.info("Message create handlers initialized"));
             });
 
-        executorService = Executors.newCachedThreadPool();
-        executorService.submit(() ->  {
-            while (!SCANNER.nextLine().equals("stop") && client != null) ;
-
-            if (client != null) reset();
-
-            Runtime.getRuntime().exit(0);
-        });
-
         DISCORD_SERVICE.onDisconnect().block();
     }
 
@@ -111,11 +98,7 @@ public class TJBot
     public void reset()
     {
         DISCORD_SERVICE.reset();
-        executorService.shutdown();
         DatabaseManager.INSTANCE.disconnect();
-
-        client = null;
-        executorService = null;
     }
 
     @SneakyThrows
