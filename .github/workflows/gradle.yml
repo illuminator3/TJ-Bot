@@ -13,4 +13,4 @@ jobs:
         java-version: '16'
         distribution: 'adopt'
     - name: Build with Gradle
-      run: ./gradlew jibDockerBuild --enable-preview
+      run: ./gradlew jibDockerBuild
