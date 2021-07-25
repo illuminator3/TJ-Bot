@@ -176,7 +176,8 @@ public class TJBot
             new FormatCommand(),
             new SyntaxCommand(),
             new LinesCommand(),
-            new ProcessCommand()
+            new ProcessCommand(),
+            new UploadCommand()
         ).forEach(commandHandler::registerCommand);
     }
 }
