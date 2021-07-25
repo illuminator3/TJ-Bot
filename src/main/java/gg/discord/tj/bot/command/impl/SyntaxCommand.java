@@ -28,6 +28,11 @@ public class SyntaxCommand
     }
 
     @Override
+    public String getDescription() {
+        return "Validates syntax of java source code when issued against a message.";
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         Message message = context.message();

@@ -8,5 +8,6 @@ public interface Command
 {
     String getName();
     Collection<String> getAliases();
+    String getDescription();
     Mono<Void> onExecute(CommandExecutionContext context);
 }

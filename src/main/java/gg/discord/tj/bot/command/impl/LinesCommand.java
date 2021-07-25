@@ -29,6 +29,11 @@ public class LinesCommand
     }
 
     @Override
+    public String getDescription() {
+        return "Prints line numbers when issued against a message.";
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         Message message = context.message();

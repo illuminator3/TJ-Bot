@@ -27,6 +27,14 @@ public class TagCommand
     }
 
     @Override
+    public String getDescription() {
+        return """
+            Prints relevant description against issued tag. To view the list of available tags use ^taglist.
+            eg. ^tag ++
+            """;
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         Map<String, String> tags = Application.BOT_INSTANCE.getAvailableTags();

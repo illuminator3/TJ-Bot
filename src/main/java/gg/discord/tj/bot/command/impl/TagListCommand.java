@@ -33,6 +33,11 @@ public class TagListCommand
     }
 
     @Override
+    public String getDescription() {
+        return "Print the list of available tags.";
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream()

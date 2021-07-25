@@ -37,6 +37,15 @@ public class ProcessCommand implements Command {
     }
 
     @Override
+    public String getDescription() {
+        return """
+                Analogous to format command but used in conjunction with lines command.
+                Formats/prettifies source code from the provided selection of line nos.
+                eg. ^process START_LINE_NO [STOP_LINE_NO]
+                """;
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         String args = context.commandContent();

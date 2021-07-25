@@ -33,6 +33,11 @@ public class FormatCommand
     }
 
     @Override
+    public String getDescription() {
+        return "Formats/prettifies source code when issued against a message.";
+    }
+
+    @Override
     public Mono<Void> onExecute(CommandExecutionContext context)
     {
         Message message = context.message();
