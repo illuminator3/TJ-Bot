@@ -10,23 +10,19 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class HelpCommand
-    implements Command
-{
+    implements Command {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "help";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("h");
     }
 
     @Override
-    public void onExecute(CommandExecutionContext context)
-    {
+    public void onExecute(CommandExecutionContext context) {
         Objects.requireNonNull(context.getMessage()
                 .getChannel()
                 .block())

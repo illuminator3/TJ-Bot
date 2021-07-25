@@ -5,42 +5,36 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
+import gg.discord.tj.bot.util.Tuple;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ProcessCommand
-    implements Command
-{
+    implements Command {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "process";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("p");
     }
 
     @Override
-    public void onExecute(CommandExecutionContext context)
-    {
+    public void onExecute(CommandExecutionContext context) {
         Message message = context.getMessage();
         MessageChannel channel = Objects.requireNonNull(message.getChannel().block());
         Optional<MessageReference> referenceOpt = message.getMessageReference();
 
         if (referenceOpt.isEmpty() || !LinesCommand.LINE_MESSAGES.containsKey(referenceOpt.get().getMessageId().get()))
             channel.createMessage("This command works by replying to a ^lines message").block();
-        else
-        {
+        else {
             Message replied = channel.getMessageById(referenceOpt.get().getMessageId().get()).block();
             List<String> lines = LinesCommand.LINE_MESSAGES.get(referenceOpt.get().getMessageId().get());
             String[] args = context.getContent().split(" ");
 
-            if (args.length != 2)
-            {
+            if (args.length != 2) {
                 channel.createMessage("Usage: ^process [start] [stop]").block();
 
                 return;
@@ -48,28 +42,24 @@ public class ProcessCommand
 
             int from, to;
 
-            try
-            {
+            try {
                 from = Integer.parseInt(args[0]);
-            } catch (NumberFormatException ignoredf)
-            {
+            } catch (NumberFormatException ignoredf) {
                 channel.createMessage("Cannot read number: " + args[0]).block();
 
                 return;
             }
 
-            try
-            {
+            try {
                 to = Integer.parseInt(args[1]);
-            } catch (NumberFormatException ignoredf)
-            {
+            } catch (NumberFormatException ignoredf) {
                 channel.createMessage("Cannot read number: " + args[1]).block();
 
                 return;
             }
 
             List<String> sl = lines.subList(from - 1, to);
-            var formatted = FormatCommand.format(String.join("\n", sl));
+            Tuple<Optional<String>, Optional<Throwable>> formatted = FormatCommand.format(String.join("\n", sl));
             Optional<String> product = formatted.getFirst();
             Optional<Throwable> lastThrowable = formatted.getSecond();
             String result;

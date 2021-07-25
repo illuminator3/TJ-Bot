@@ -20,8 +20,7 @@ public class CommandHandler
     @Getter(AccessLevel.PRIVATE)
     private final Set<Command> commandSet = new HashSet<>(); // TODO improve this design
 
-    public void registerCommand(Command command)
-    {
+    public void registerCommand(Command command) {
         commands.put(command.getName(), command);
 
         command.getAliases().forEach(s -> commands.put(s, command));
@@ -29,28 +28,23 @@ public class CommandHandler
         commandSet.add(command);
     }
 
-    public Set<Command> getCommandsAsSet()
-    {
+    public Set<Command> getCommandsAsSet() {
         return getCommandSet();
     }
 
-    public void init(GatewayDiscordClient client)
-    {
+    public void init(GatewayDiscordClient client) {
         client.on(MessageCreateEvent.class).subscribe(this::handleMessage);
     }
 
-    private void handleMessage(MessageCreateEvent e)
-    {
+    private void handleMessage(MessageCreateEvent e) {
         Message message = e.getMessage();
         String content = message.getContent();
         String[] s = content.split(" ");
 
-        if (s.length != 0)
-        {
+        if (s.length != 0) {
             String commandRaw = s[0];
 
-            if (commandRaw.startsWith("^"))
-            {
+            if (commandRaw.startsWith("^")) {
                 String commandName = commandRaw.substring(1);
 
                 commands.computeIfPresent(commandName,
@@ -60,13 +54,11 @@ public class CommandHandler
         }
     }
 
-    private CommandExecutionContext buildContext(MessageCreateEvent event, String cmd)
-    {
+    private CommandExecutionContext buildContext(MessageCreateEvent event, String cmd) {
         return new CommandExecutionContext(event.getMessage(), event.getMessage().getContent().substring(("^" + cmd).length()).trim(), event.getGuild().block(), event.getMember().orElseThrow());
     }
 
-    public static <A, B> BiFunction<A, B, B> extraIdentity(BiConsumer<A, B> consumer)
-    {
+    public static <A, B> BiFunction<A, B, B> extraIdentity(BiConsumer<A, B> consumer) {
         return (a, b) -> {
             consumer.accept(a, b);
 

@@ -42,8 +42,7 @@ import static gg.discord.tj.bot.util.MessageTemplate.PLAINTEXT_MESSAGE_TEMPLATE;
 @Getter
 @Slf4j
 public class TJBot
-    implements Bot
-{
+    implements Bot {
     private static final StatisticsService STATISTICS_SERVICE = new StatisticsService();
     private static final String NO_ENTRIES = "No entries";
     private static final Duration DURATION_30D = Duration.ofDays(30);
@@ -71,8 +70,7 @@ public class TJBot
 
     @SneakyThrows
     @Override
-    public void start()
-    {
+    public void start() {
         loadTags();
         initializeServices();
 
@@ -94,8 +92,7 @@ public class TJBot
     }
 
     @Override
-    public void reset()
-    {
+    public void reset() {
         client.logout().block();
         executorService.shutdown();
         DatabaseManager.INSTANCE.disconnect();
@@ -105,17 +102,14 @@ public class TJBot
     }
 
     @SneakyThrows
-    private void loadTags()
-    {
+    private void loadTags() {
         CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
 
-        if (src != null)
-        {
+        if (src != null) {
             URL jar = src.getLocation();
             ZipInputStream zip = new ZipInputStream(jar.openStream());
 
-            while (true)
-            {
+            while (true) {
                 ZipEntry e = zip.getNextEntry();
 
                 if (e == null)
@@ -123,8 +117,7 @@ public class TJBot
 
                 String name = e.getName();
 
-                if (name.matches("tags/.+\\.tag"))
-                {
+                if (name.matches("tags/.+\\.tag")) {
                     String tagName = name.substring("tags/".length()).replace(".tag", "");
                     String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
 
@@ -134,26 +127,22 @@ public class TJBot
         }
     }
 
-    private void initializeServices()
-    {
+    private void initializeServices() {
         STATISTICS_SERVICE.init();
     }
 
-    private GatewayDiscordClient registerDiscordClient()
-    {
+    private GatewayDiscordClient registerDiscordClient() {
         return DiscordClient.create(token)
             .login()
             .block();
     }
 
-    private void registerClientEvents(GatewayDiscordClient client)
-    {
+    private void registerClientEvents(GatewayDiscordClient client) {
         client.on(MessageCreateEvent.class).subscribe(STATISTICS_SERVICE::save);
         client.on(InteractionCreateEvent.class).subscribe(e ->  {
             ApplicationCommandInteraction commandInteraction = e.getInteraction().getCommandInteraction().orElseThrow();
 
-            if (commandInteraction.getName().orElseThrow().equals("tophelpers"))
-            {
+            if (commandInteraction.getName().orElseThrow().equals("tophelpers")) {
                 List<List<String>> topNHelpers = STATISTICS_SERVICE.topNHelpers(e);
                 Character[] characters = AsciiTable.BASIC_ASCII_NO_DATA_SEPARATORS_NO_OUTSIDE_BORDER;
                 List<ColumnData<List<String>>> columnData = List.of(
@@ -176,8 +165,7 @@ public class TJBot
         }));
     }
 
-    private void registerCommandHandler(GatewayDiscordClient client)
-    {
+    private void registerCommandHandler(GatewayDiscordClient client) {
         commandHandler = new CommandHandler();
         commandHandler.init(client);
 

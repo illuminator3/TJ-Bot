@@ -6,8 +6,7 @@ import discord4j.core.object.entity.Message;
 import lombok.Data;
 
 @Data
-public class CommandExecutionContext
-{
+public class CommandExecutionContext {
     private final Message message;
     private final String content;
     private final Guild guild;

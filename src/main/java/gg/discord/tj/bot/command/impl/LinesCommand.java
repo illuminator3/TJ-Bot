@@ -11,33 +11,28 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class LinesCommand
-    implements Command
-{
+    implements Command {
     protected static final Map<Snowflake, List<String>> LINE_MESSAGES = new WeakHashMap<>();
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "lines";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("l");
     }
 
     @Override
-    public void onExecute(CommandExecutionContext context)
-    {
+    public void onExecute(CommandExecutionContext context) {
         Message message = context.getMessage();
         MessageChannel channel = Objects.requireNonNull(message.getChannel().block());
         Optional<MessageReference> referenceOpt = message.getMessageReference();
 
         if (referenceOpt.isEmpty())
             channel.createMessage("This command works by replying to a message").block();
-        else
-        {
+        else {
             Message replied = channel.getMessageById(referenceOpt.get().getMessageId().get()).block();
             String content = replied.getContent();
             String lines = content.replace("`", "\\`");
