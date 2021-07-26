@@ -3,13 +3,14 @@ package gg.discord.tj.bot.service;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.InteractionCreateEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.message.MessageDeleteEvent;
 import discord4j.core.object.command.ApplicationCommandInteraction;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
-import gg.discord.tj.bot.repository.StatisticsRepository;
+import gg.discord.tj.bot.repository.MessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -23,9 +24,9 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 @Slf4j
-public final class StatisticsService
+public final class MessageService
 {
-    private final StatisticsRepository repository = StatisticsRepository.INSTANCE;
+    private final MessageRepository repository = MessageRepository.INSTANCE;
     private final static Pattern HELP_CHANNEL_NAME_PATTERN = Pattern.compile("help|review");
     private final static String TAG_FREE_MESSAGE_PATTERN = "^(?![?>]tag free).*$";
 
@@ -103,5 +104,17 @@ public final class StatisticsService
                 }
             }).map(enhanceDataFrame)
             .flatMap(Flux::collectList);
+    }
+
+    public Mono<Void> setPurgableCommandResponseReference(long msgId, Message message) {
+        repository.setPurgableCommandResponseReference(msgId, message);
+        return Mono.empty();
+    }
+
+    public Mono<Void> purgeCommandResponseReference(MessageDeleteEvent event) {
+        Message commandResponseMessage = repository.getPurgableCommandResponseReference(event.getMessageId().asLong());
+        return commandResponseMessage == null ?
+            Mono.empty() :
+            commandResponseMessage.delete();
     }
 }

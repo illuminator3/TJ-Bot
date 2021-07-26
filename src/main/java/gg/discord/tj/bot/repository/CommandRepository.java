@@ -2,7 +2,7 @@ package gg.discord.tj.bot.repository;
 
 import gg.discord.tj.bot.command.Command;
 
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public enum CommandRepository {

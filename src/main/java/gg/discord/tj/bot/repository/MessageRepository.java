@@ -1,14 +1,28 @@
 package gg.discord.tj.bot.repository;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import discord4j.core.object.entity.Message;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public enum StatisticsRepository
+import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES;
+import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_MAX_ENTRIES;
+
+public enum MessageRepository
 {
     INSTANCE;
 
     final DatabaseManager databaseManager = DatabaseManager.INSTANCE;
+    final Cache<Long, Message> purgableCommandResponseReferences = CacheBuilder.newBuilder()
+        .maximumSize(PURGABLE_COMMAND_MAX_ENTRIES)
+        .expireAfterWrite(PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES, TimeUnit.MINUTES)
+        .build();
 
     public void init()
         throws SQLException
@@ -90,5 +104,13 @@ public enum StatisticsRepository
         }
 
         return rowCount;
+    }
+
+    public void setPurgableCommandResponseReference(long msgId, Message message) {
+        purgableCommandResponseReferences.put(msgId, message);
+    }
+
+    public Message getPurgableCommandResponseReference(long msgId) {
+        return purgableCommandResponseReferences.getIfPresent(msgId);
     }
 }

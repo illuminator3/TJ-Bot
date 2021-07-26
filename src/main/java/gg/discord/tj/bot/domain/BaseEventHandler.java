@@ -2,14 +2,15 @@ package gg.discord.tj.bot.domain;
 
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import gg.discord.tj.bot.service.StatisticsService;
+import discord4j.core.event.domain.message.MessageDeleteEvent;
+import gg.discord.tj.bot.service.MessageService;
 import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.ParameterizedType;
 
 public abstract non-sealed class BaseEventHandler<T extends Event> implements EventHandler<T> {
-    public static final StatisticsService STATISTICS_SERVICE = new StatisticsService();
+    public static final MessageService MESSAGE_SERVICE = new MessageService();
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
@@ -19,15 +20,19 @@ public abstract non-sealed class BaseEventHandler<T extends Event> implements Ev
     }
 
     public final Mono<Void> processEvent(T event) {
-        return saveIfMessageCreateEvent(event)
+        return executeDefaultActionForEvent(event)
             .flatMap(this::handleEvent);
     }
 
-    private Mono<T> saveIfMessageCreateEvent(T event) {
+    private Mono<T> executeDefaultActionForEvent(T event) {
         Mono<T> mono = Mono.just(event);
         if (event instanceof MessageCreateEvent createEvent) {
             mono = Mono.just(createEvent)
-                .flatMap(STATISTICS_SERVICE::save)
+                .flatMap(MESSAGE_SERVICE::save)
+                .then(mono);
+        } else if (event instanceof MessageDeleteEvent deleteEvent) {
+            mono = Mono.just(deleteEvent)
+                .flatMap(MESSAGE_SERVICE::purgeCommandResponseReference)
                 .then(mono);
         }
         return mono;

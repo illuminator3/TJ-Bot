@@ -21,7 +21,7 @@ public final class GlobalTopHelpersApplicationCommand extends BaseEventHandler<I
     private Mono<String> generateResponse(InteractionCreateEvent e, String commandInterationName) {
         return switch (getCommandInterationName(e)) {
             case "tophelpers" ->
-                STATISTICS_SERVICE.topNHelpers(e)
+                MESSAGE_SERVICE.topNHelpers(e)
                 .map(topNHelpers -> String.format(
                         PLAINTEXT_MESSAGE_TEMPLATE,
                         topNHelpers.isEmpty() ?
