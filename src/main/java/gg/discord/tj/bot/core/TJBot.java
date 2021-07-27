@@ -143,7 +143,7 @@ public class TJBot implements Bot {
 
             reset();
 
-            Runtime.getRuntime().exit(0);
+            Runtime.getRuntime().halt(0);
         });
     }
 }
