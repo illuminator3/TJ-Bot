@@ -27,6 +27,7 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -70,7 +71,7 @@ public class TJBot implements Bot {
             new ProcessCommand(),
             new UploadCommand()
         ).forEach(COMMAND_REPOSITORY::registerCommand);
-        
+
         List<EventHandler<MessageCreateEvent>> msgCreateEventHandlers = List.of(
             new CommandHandler()
         );
@@ -132,5 +133,17 @@ public class TJBot implements Bot {
     private void initializeServices() {
         DISCORD_SERVICE.init(token);
         MESSAGE_SERVICE.init();
+
+        registerShutdownService();
+    }
+
+    private void registerShutdownService() {
+        Executors.newFixedThreadPool(1).submit(() -> {
+            while (!SCANNER.nextLine().equals("stop")) ;
+
+            reset();
+
+            Runtime.getRuntime().exit(0);
+        });
     }
 }
