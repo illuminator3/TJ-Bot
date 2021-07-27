@@ -139,7 +139,9 @@ public class TJBot implements Bot {
 
     private void registerShutdownService() {
         Executors.newFixedThreadPool(1).submit(() -> {
-            while (!SCANNER.nextLine().equals("stop")) ;
+            while (!SCANNER.nextLine().equals("stop")) {
+                log.info("Received non-stop command");
+            }
 
             reset();
 
