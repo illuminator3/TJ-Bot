@@ -106,26 +106,17 @@ public class TJBot implements Bot {
 
     @SneakyThrows
     private void loadTags() {
-        CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
+        URL url = TJBot.class.getResource("/tags");
 
-        if (src != null) {
-            URL jar = src.getLocation();
-            ZipInputStream zip = new ZipInputStream(jar.openStream());
+        if (url != null) {
+            File[] files = new File(url.toURI()).listFiles();
 
-            while (true) {
-                ZipEntry e = zip.getNextEntry();
+            for (File file : files) {
+                String name = file.getName();
+                String tagName = name.replace(".tag", "");
+                String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("tags/" + name))).lines().collect(Collectors.joining("\n"));
 
-                if (e == null)
-                    break;
-
-                String name = e.getName();
-
-                if (name.matches("tags/.+\\.tag")) {
-                    String tagName = name.substring("tags/".length()).replace(".tag", "");
-                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
-
-                    availableTags.put(tagName, content);
-                }
+                availableTags.put(tagName, content);
             }
         }
     }
