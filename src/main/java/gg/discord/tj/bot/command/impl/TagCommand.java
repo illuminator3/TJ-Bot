@@ -1,19 +1,20 @@
 package gg.discord.tj.bot.command.impl;
 
-import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import gg.discord.tj.bot.app.Application;
 import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
+import gg.discord.tj.bot.service.MessageService;
+import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class TagCommand
-    implements Command {
-    public static final Map<Snowflake, Message> TAG_MESSAGE_CACHE = new HashMap<>();
+public class TagCommand implements Command {
+    public static final MessageService MESSAGE_SERVICE = new MessageService();
 
     @Override
     public String getName() {
@@ -26,21 +27,30 @@ public class TagCommand
     }
 
     @Override
-    public void onExecute(CommandExecutionContext context) {
-        Message message = context.getMessage();
-        Stream<User> mentions = message.getUserMentions().toStream();
-        String tag = context.getContent().split(" ")[0];
+    public String getDescription() {
+        return """
+            Prints relevant description against issued tag. To view the list of available tags use ^taglist.
+            eg. ^tag ++
+            """;
+    }
+
+    @Override
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Map<String, String> tags = Application.BOT_INSTANCE.getAvailableTags();
-
-        if (tags.containsKey(tag)) {
-            String users = mentions.map(User::getMention).collect(Collectors.joining(", "));
-
-            Message msg = Objects.requireNonNull(message.getChannel().block())
-                    .createMessage(tags.get(tag)
-                            .replace("{{ user }}", users.isEmpty() ? "" : " " + users))
-                    .block();
-
-            TAG_MESSAGE_CACHE.put(message.getId(), msg);
-        }
+        String users = context.message().getUserMentions()
+            .toStream()
+            .map(User::getMention)
+            .collect(Collectors.joining(", "));
+        Message message = context.message();
+        
+        return message
+            .getChannel()
+            .flatMap(channel -> channel == null ?
+                Mono.empty() :
+                channel.createMessage(tags.get(context.commandContent().split(" ")[0])
+                .replace("{{ user }}", users.isEmpty() ? "" : " " + users))
+                    .flatMap(responseMessage -> MESSAGE_SERVICE.setPurgableCommandResponseReference(message.getId().asLong(), responseMessage))
+            )
+            .then();
     }
 }

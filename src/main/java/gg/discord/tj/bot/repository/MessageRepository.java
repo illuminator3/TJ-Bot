@@ -1,16 +1,29 @@
-package gg.discord.tj.bot.db;
+package gg.discord.tj.bot.repository;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import discord4j.core.object.entity.Message;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
-public enum StatisticsRepository {
+import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES;
+import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_MAX_ENTRIES;
+
+public enum MessageRepository {
     INSTANCE;
 
-    DatabaseManager databaseManager = DatabaseManager.INSTANCE;
+    final DatabaseManager databaseManager = DatabaseManager.INSTANCE;
+    final Cache<Long, Message> purgableCommandResponseReferences = CacheBuilder.newBuilder()
+        .maximumSize(PURGABLE_COMMAND_MAX_ENTRIES)
+        .expireAfterWrite(PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES, TimeUnit.MINUTES)
+        .build();
 
-    public void init()
-        throws SQLException {
+    public void init() throws SQLException {
         Connection connection = databaseManager.establishConnection();
 
         try (Statement statement = connection.createStatement()) {
@@ -24,8 +37,7 @@ public enum StatisticsRepository {
         }
     }
 
-    public List<List<Long>> topNHelpersForGuild(long guildId, int limit)
-        throws SQLException {
+    public List<List<Long>> topNHelpersForGuild(long guildId, int limit) throws SQLException {
         List<List<Long>> topHelpersList = new ArrayList<>();
         Connection connection = databaseManager.establishConnection();
 
@@ -52,8 +64,7 @@ public enum StatisticsRepository {
         return topHelpersList;
     }
 
-    public int save(long guildId, long userId)
-        throws SQLException {
+    public int save(long guildId, long userId) throws SQLException {
         int rowCount;
         Connection connection = databaseManager.establishConnection();
 
@@ -67,8 +78,7 @@ public enum StatisticsRepository {
         return rowCount;
     }
 
-    public int purge(long olderThanInMillis)
-        throws SQLException {
+    public int purge(long olderThanInMillis) throws SQLException {
         int rowCount;
         Connection connection = databaseManager.establishConnection();
 
@@ -79,5 +89,13 @@ public enum StatisticsRepository {
         }
 
         return rowCount;
+    }
+
+    public void setPurgableCommandResponseReference(long msgId, Message message) {
+        purgableCommandResponseReferences.put(msgId, message);
+    }
+
+    public Message getPurgableCommandResponseReference(long msgId) {
+        return purgableCommandResponseReferences.getIfPresent(msgId);
     }
 }

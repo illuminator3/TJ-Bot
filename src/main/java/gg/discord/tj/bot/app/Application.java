@@ -22,7 +22,7 @@ public class Application {
                 thr.printStackTrace();
 
                 BOT_INSTANCE.reset();
-                System.gc();
+//                System.gc();
             }
         }
     }

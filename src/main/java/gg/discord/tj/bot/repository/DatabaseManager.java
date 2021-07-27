@@ -1,4 +1,4 @@
-package gg.discord.tj.bot.db;
+package gg.discord.tj.bot.repository;
 
 import lombok.SneakyThrows;
 
@@ -17,7 +17,7 @@ public enum DatabaseManager {
         Connection connection = connectionRef.get();
 
         if (connection == null) {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + Path.of("tjdatabase.db").toFile().getCanonicalPath());
+            connection = DriverManager.getConnection("jdbc:sqlite:" + Path.of("/var/tjbot/tjdatabase.db").toFile().getCanonicalPath());
 
             if (!connectionRef.compareAndSet(null, connection))
                 return connectionRef.get();

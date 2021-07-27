@@ -1,68 +1,37 @@
 package gg.discord.tj.bot.command;
 
-import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
-import lombok.AccessLevel;
+import gg.discord.tj.bot.domain.BaseEventHandler;
+import gg.discord.tj.bot.repository.CommandRepository;
 import lombok.Getter;
+import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Getter
-public class CommandHandler
-{
-    private final Map<String, Command> commands = new HashMap<>();
-    @Getter(AccessLevel.PRIVATE)
-    private final Set<Command> commandSet = new HashSet<>(); // TODO improve this design
+public class CommandHandler extends BaseEventHandler<MessageCreateEvent> {
+    private final static Pattern COMMAND_CAPTURE_PATTERN = Pattern.compile("^(\\^([a-z]+)).*");
+    private final static int COMMAND_WITH_PREFIX_GROUP = 1;
+    private final static int COMMAND_NAME_GROUP = 2;
 
-    public void registerCommand(Command command) {
-        commands.put(command.getName(), command);
+    private final static CommandRepository COMMAND_REPOSITORY = CommandRepository.INSTANCE;
 
-        command.getAliases().forEach(s -> commands.put(s, command));
-
-        commandSet.add(command);
-    }
-
-    public Set<Command> getCommandsAsSet() {
-        return getCommandSet();
-    }
-
-    public void init(GatewayDiscordClient client) {
-        client.on(MessageCreateEvent.class).subscribe(this::handleMessage);
-    }
-
-    private void handleMessage(MessageCreateEvent e) {
-        Message message = e.getMessage();
+    public Mono<Void> handleEvent(MessageCreateEvent event)
+    {
+        Mono<Void> eventReturn = Mono.empty();
+        Message message = event.getMessage();
         String content = message.getContent();
-        String[] s = content.split(" ");
-
-        if (s.length != 0) {
-            String commandRaw = s[0];
-
-            if (commandRaw.startsWith("^")) {
-                String commandName = commandRaw.substring(1);
-
-                commands.computeIfPresent(commandName,
-                    extraIdentity((name, command) -> command.onExecute(buildContext(e, name)))
-                );
-            }
+        Matcher commandMatcher = COMMAND_CAPTURE_PATTERN.matcher(content);
+        
+        if (commandMatcher.matches()) {
+            String commandWithPrefix = commandMatcher.group(COMMAND_WITH_PREFIX_GROUP);
+            String commandName = commandMatcher.group(COMMAND_NAME_GROUP);
+            eventReturn = COMMAND_REPOSITORY.retrieveCommand(commandName)
+                .onExecute(new CommandExecutionContext(message, content.substring(commandWithPrefix.length()).trim()));
         }
-    }
-
-    private CommandExecutionContext buildContext(MessageCreateEvent event, String cmd) {
-        return new CommandExecutionContext(event.getMessage(), event.getMessage().getContent().substring(("^" + cmd).length()).trim(), event.getGuild().block(), event.getMember().orElseThrow());
-    }
-
-    public static <A, B> BiFunction<A, B, B> extraIdentity(BiConsumer<A, B> consumer) {
-        return (a, b) -> {
-            consumer.accept(a, b);
-
-            return b;
-        };
+        
+        return eventReturn;
     }
 }
