@@ -12,18 +12,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public class SyntaxCommand
-    implements Command
-{
+public class SyntaxCommand implements Command {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "syntax";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("s");
     }
 
@@ -33,10 +29,10 @@ public class SyntaxCommand
     }
 
     @Override
-    public Mono<Void> onExecute(CommandExecutionContext context)
-    {
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
+
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted
@@ -52,7 +48,7 @@ public class SyntaxCommand
     }
 
     private String decorateMessageWithUserInfo(String content, String originalPoster, String answerer) {
-        if(JavaFormatUtils.format(content).first().isPresent()) {
+        if (JavaFormatUtils.format(content).first().isPresent()) {
             return originalPoster + "'s code requested by " + answerer + " has valid syntax";
         } else {
             return originalPoster + "'s code requested by " + answerer + " will not compile:```\n" + content + "\n```";

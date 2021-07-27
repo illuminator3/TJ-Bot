@@ -24,12 +24,14 @@ public class CommandHandler extends BaseEventHandler<MessageCreateEvent> {
         Message message = event.getMessage();
         String content = message.getContent();
         Matcher commandMatcher = COMMAND_CAPTURE_PATTERN.matcher(content);
+        
         if (commandMatcher.matches()) {
             String commandWithPrefix = commandMatcher.group(COMMAND_WITH_PREFIX_GROUP);
             String commandName = commandMatcher.group(COMMAND_NAME_GROUP);
             eventReturn = COMMAND_REPOSITORY.retrieveCommand(commandName)
                 .onExecute(new CommandExecutionContext(message, content.substring(commandWithPrefix.length()).trim()));
         }
+        
         return eventReturn;
     }
 }

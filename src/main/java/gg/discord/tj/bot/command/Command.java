@@ -4,8 +4,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 
-public interface Command
-{
+public interface Command {
     String getName();
     Collection<String> getAliases();
     String getDescription();

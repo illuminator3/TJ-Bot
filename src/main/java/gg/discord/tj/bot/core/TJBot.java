@@ -32,9 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 @Slf4j
-public class TJBot
-    implements Bot
-{
+public class TJBot implements Bot {
     private static final DiscordService DISCORD_SERVICE = new DiscordService();
     private static final MessageService MESSAGE_SERVICE = new MessageService();
     private final static CommandRepository COMMAND_REPOSITORY = CommandRepository.INSTANCE;
@@ -58,8 +56,7 @@ public class TJBot
 
     @SneakyThrows
     @Override
-    public void start()
-    {
+    public void start() {
         Set.of(
             new TagCommand(),
             new TagListCommand(),
@@ -70,6 +67,7 @@ public class TJBot
             new ProcessCommand(),
             new UploadCommand()
         ).forEach(COMMAND_REPOSITORY::registerCommand);
+        
         List<EventHandler<MessageCreateEvent>> msgCreateEventHandlers = List.of(
             new CommandHandler()
         );
@@ -97,29 +95,38 @@ public class TJBot
     }
 
     @Override
-    public void reset()
-    {
+    public void reset() {
         DISCORD_SERVICE.reset();
         DatabaseManager.INSTANCE.disconnect();
     }
 
     @SneakyThrows
-    private void loadTags()
-    {
-        URL url = TJBot.class.getResource("/tags");
-        if (url != null) {
-            File[] files = new File(url.toURI()).listFiles();
-            for (File file : files) {
-                var name = file.getName();
-                String tagName = name.replace(".tag", "");
-                String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream("tags/" + name))).lines().collect(Collectors.joining("\n"));
-                availableTags.put(tagName, content);
+    private void loadTags() {
+        CodeSource src = TJBot.class.getProtectionDomain().getCodeSource();
+
+        if (src != null) {
+            URL jar = src.getLocation();
+            ZipInputStream zip = new ZipInputStream(jar.openStream());
+
+            while (true) {
+                ZipEntry e = zip.getNextEntry();
+
+                if (e == null)
+                    break;
+
+                String name = e.getName();
+
+                if (name.matches("tags/.+\\.tag")) {
+                    String tagName = name.substring("tags/".length()).replace(".tag", "");
+                    String content = new BufferedReader(new InputStreamReader(ClassLoader.getSystemClassLoader().getResourceAsStream(name))).lines().collect(Collectors.joining("\n"));
+
+                    availableTags.put(tagName, content);
+                }
             }
         }
     }
 
-    private void initializeServices()
-    {
+    private void initializeServices() {
         DISCORD_SERVICE.init(token);
         MESSAGE_SERVICE.init();
     }

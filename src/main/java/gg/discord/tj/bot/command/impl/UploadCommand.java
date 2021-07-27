@@ -32,6 +32,7 @@ public class UploadCommand implements Command {
     public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
+        
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted

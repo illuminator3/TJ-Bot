@@ -16,19 +16,14 @@ import java.util.Optional;
 import static gg.discord.tj.bot.util.Constants.DISCORD_MAX_MESSAGE_LENGTH;
 import static gg.discord.tj.bot.util.MessageTemplate.JAVA_MESSAGE_TEMPLATE;
 
-public class FormatCommand
-    implements Command
-{
-
+public class FormatCommand implements Command {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "format";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("f");
     }
 
@@ -38,10 +33,10 @@ public class FormatCommand
     }
 
     @Override
-    public Mono<Void> onExecute(CommandExecutionContext context)
-    {
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
+
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted
@@ -61,6 +56,7 @@ public class FormatCommand
     private String decorateMessageWithUserInfo(String content, String originalPoster, String answerer) {
         Optional<String> stringOptional = JavaFormatUtils.format(content).first();
         Optional<Throwable> throwableOptional = JavaFormatUtils.format(content).second();
+
         return stringOptional
             .map(s -> originalPoster + "'s code requested by " + answerer + ":" + String.format(JAVA_MESSAGE_TEMPLATE, s))
             .orElseGet(() -> "An error occured while requesting " + originalPoster + "'s code:```\n" + throwableOptional.get() + "\n```");
@@ -69,11 +65,13 @@ public class FormatCommand
     private Mono<String> generateResponse(String content, String originalPoster, String answerer) {
         String response = decorateMessageWithUserInfo(content, originalPoster, answerer);
         Mono<String> responseMono = Mono.just(response);
-        if(response.length() > DISCORD_MAX_MESSAGE_LENGTH) {
+
+        if (response.length() > DISCORD_MAX_MESSAGE_LENGTH) {
             responseMono = Mono.fromFuture(Hastebin.paste("https://paste.md-5.net", response, false))
                 .map(link -> originalPoster + "'s code requested by " + answerer + " was uploaded to " + link)
                 .onErrorReturn("An error occured while uploading the formatted code. Try again later");
         }
+        
         return responseMono;
     }
 }

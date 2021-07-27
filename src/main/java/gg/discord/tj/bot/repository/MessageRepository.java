@@ -14,8 +14,7 @@ import java.util.concurrent.TimeUnit;
 import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES;
 import static gg.discord.tj.bot.util.Constants.PURGABLE_COMMAND_MAX_ENTRIES;
 
-public enum MessageRepository
-{
+public enum MessageRepository {
     INSTANCE;
 
     final DatabaseManager databaseManager = DatabaseManager.INSTANCE;
@@ -24,13 +23,10 @@ public enum MessageRepository
         .expireAfterWrite(PURGABLE_COMMAND_EXPIRY_TIME_IN_MINUTES, TimeUnit.MINUTES)
         .build();
 
-    public void init()
-        throws SQLException
-    {
+    public void init() throws SQLException {
         Connection connection = databaseManager.establishConnection();
 
-        try (Statement statement = connection.createStatement())
-        {
+        try (Statement statement = connection.createStatement()) {
             statement.execute("""
                     CREATE TABLE IF NOT EXISTS messages (
                         user long,
@@ -41,9 +37,7 @@ public enum MessageRepository
         }
     }
 
-    public List<List<Long>> topNHelpersForGuild(long guildId, int limit)
-        throws SQLException
-    {
+    public List<List<Long>> topNHelpersForGuild(long guildId, int limit) throws SQLException {
         List<List<Long>> topHelpersList = new ArrayList<>();
         Connection connection = databaseManager.establishConnection();
 
@@ -52,16 +46,13 @@ public enum MessageRepository
                             SELECT user, count(*) FROM messages WHERE guild = ?
                             GROUP BY user ORDER BY count(*) DESC LIMIT ?
                         ) SELECT ROW_NUMBER() OVER(ORDER BY count DESC) as '#', user, count from TOPHELPERS
-                        """))
-        {
-
+                        """)) {
             preparedStatement.setLong(1, guildId);
             preparedStatement.setInt(2, limit);
 
             ResultSet result = preparedStatement.executeQuery();
 
-            while (result.next())
-            {
+            while (result.next()) {
                 long serialId = result.getLong("#");
                 long userId = result.getLong("user");
                 long msgCount = result.getLong("count");
@@ -73,14 +64,11 @@ public enum MessageRepository
         return topHelpersList;
     }
 
-    public int save(long guildId, long userId)
-        throws SQLException
-    {
+    public int save(long guildId, long userId) throws SQLException {
         int rowCount;
         Connection connection = databaseManager.establishConnection();
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO messages (user, timestamp, guild) VALUES (?, CURRENT_TIMESTAMP, ?)"))
-        {
+        try (PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO messages (user, timestamp, guild) VALUES (?, CURRENT_TIMESTAMP, ?)")) {
             preparedStatement.setLong(1, userId);
             preparedStatement.setLong(2, guildId);
 
@@ -90,14 +78,11 @@ public enum MessageRepository
         return rowCount;
     }
 
-    public int purge(long olderThanInMillis)
-        throws SQLException
-    {
+    public int purge(long olderThanInMillis) throws SQLException {
         int rowCount;
         Connection connection = databaseManager.establishConnection();
 
-        try (PreparedStatement prepareStatement = connection.prepareStatement("DELETE FROM messages WHERE timestamp < ?"))
-        {
+        try (PreparedStatement prepareStatement = connection.prepareStatement("DELETE FROM messages WHERE timestamp < ?")) {
             prepareStatement.setLong(1, olderThanInMillis);
 
             rowCount = prepareStatement.executeUpdate();

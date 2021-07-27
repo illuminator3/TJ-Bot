@@ -17,14 +17,12 @@ public class TagCommand implements Command {
     public static final MessageService MESSAGE_SERVICE = new MessageService();
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "tag";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("t", "?");
     }
 
@@ -37,14 +35,14 @@ public class TagCommand implements Command {
     }
 
     @Override
-    public Mono<Void> onExecute(CommandExecutionContext context)
-    {
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Map<String, String> tags = Application.BOT_INSTANCE.getAvailableTags();
         String users = context.message().getUserMentions()
             .toStream()
             .map(User::getMention)
             .collect(Collectors.joining(", "));
         Message message = context.message();
+        
         return message
             .getChannel()
             .flatMap(channel -> channel == null ?

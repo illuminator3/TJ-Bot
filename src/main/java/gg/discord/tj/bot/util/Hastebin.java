@@ -11,13 +11,11 @@ import java.util.concurrent.CompletableFuture;
 
 public class Hastebin
 {
-    public static CompletableFuture<String> paste(String server, String text, boolean raw)
-    {
+    public static CompletableFuture<String> paste(String server, String text, boolean raw) {
         CompletableFuture<String> result = new CompletableFuture<>();
 
         new Thread(() -> {
-            try
-            {
+            try {
                 byte[] postData = text.getBytes(StandardCharsets.UTF_8);
                 int postDataLength = postData.length;
                 String requestURL = server + "/documents";
@@ -31,21 +29,17 @@ public class Hastebin
                 con.setRequestProperty("Content-Length", String.valueOf(postDataLength));
                 con.setUseCaches(false);
 
-                try (DataOutputStream wr = new DataOutputStream(con.getOutputStream()))
-                {
+                try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
                     wr.write(postData);
-                    wr.flush();
                 }
 
                 String response;
 
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream())))
-                {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
                     response = reader.readLine();
                 }
 
-                if (response != null && response.contains("\"key\""))
-                {
+                if (response != null && response.contains("\"key\"")) {
                     response = response.substring(response.indexOf(":") + 2, response.length() - 2);
 
                     String postURL = raw ? server + "/raw/" : server + "/";
@@ -54,8 +48,7 @@ public class Hastebin
                 }
 
                 result.complete(response);
-            } catch (IOException ex)
-            {
+            } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         }).start();

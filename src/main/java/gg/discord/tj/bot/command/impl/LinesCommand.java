@@ -13,18 +13,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class LinesCommand
-    implements Command
-{
+public class LinesCommand implements Command {
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "lines";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("l");
     }
 
@@ -34,10 +30,10 @@ public class LinesCommand
     }
 
     @Override
-    public Mono<Void> onExecute(CommandExecutionContext context)
-    {
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
+        
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted

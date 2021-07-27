@@ -19,14 +19,12 @@ public class HelpCommand implements Command {
     public static final MessageService MESSAGE_SERVICE = new MessageService();
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return "help";
     }
 
     @Override
-    public Collection<String> getAliases()
-    {
+    public Collection<String> getAliases() {
         return List.of("h");
     }
 
@@ -36,9 +34,9 @@ public class HelpCommand implements Command {
     }
 
     @Override
-    public Mono<Void> onExecute(CommandExecutionContext context)
-    {
+    public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
+        
         return message
             .getChannel()
             .flatMap(channel -> channel == null ?
