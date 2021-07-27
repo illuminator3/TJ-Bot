@@ -36,7 +36,7 @@ dependencies {
     implementation 'org.xerial:sqlite-jdbc:3.36.0.1'
     implementation 'com.google.googlejavaformat:google-java-format:1.10.0'
     implementation 'com.github.freva:ascii-table:1.2.0'
-    implementation 'ch.qos.logback:logback-core:1.2.4'
+    implementation 'ch.qos.logback:logback-core:1.2.5'
     implementation 'org.slf4j:slf4j-api:1.7.32'
 
     runtimeOnly 'ch.qos.logback:logback-classic:1.2.4'
