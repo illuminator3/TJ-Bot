@@ -25,7 +25,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("ConstantConditions")
@@ -125,14 +124,12 @@ public class TJBot implements Bot {
     }
 
     private void registerShutdownService() {
-        Executors.newCachedThreadPool().submit(() -> {
-            while (!SCANNER.nextLine().equals("stop")) {
-                log.info("Received non-stop command");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                reset();
+                log.info("Shutdown hook completed");
             }
-
-            reset();
-
-            Runtime.getRuntime().halt(0);
         });
     }
 }
