@@ -37,6 +37,8 @@ public enum MessageRepository {
         }
     }
 
+    public void reset() { INSTANCE.reset(); }
+
     public List<List<Long>> topNHelpersForGuild(long guildId, int limit) throws SQLException {
         List<List<Long>> topHelpersList = new ArrayList<>();
         Connection connection = databaseManager.establishConnection();
