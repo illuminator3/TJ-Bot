@@ -20,16 +20,15 @@ public final class GlobalTopHelpersApplicationCommand extends BaseEventHandler<I
 
     private Mono<String> generateResponse(InteractionCreateEvent e, String commandInterationName) {
         return switch (getCommandInterationName(e)) {
-            case "tophelpers" ->
-                MESSAGE_SERVICE.topNHelpers(e)
+            case "tophelpers" -> MESSAGE_SERVICE.topNHelpers(e)
                 .map(topNHelpers -> String.format(
-                        PLAINTEXT_MESSAGE_TEMPLATE,
-                        topNHelpers.isEmpty() ?
-                            NO_ENTRIES :
-                            PresentationUtils.dataFrameToAsciiTable(topNHelpers,
-                                new String[]{"#", "Name", "Message Count (in the last 30 days)"},
-                                new HorizontalAlign[]{HorizontalAlign.RIGHT, HorizontalAlign.LEFT, HorizontalAlign.RIGHT}
-                            )
+                    PLAINTEXT_MESSAGE_TEMPLATE,
+                    topNHelpers.isEmpty() ?
+                        NO_ENTRIES :
+                        PresentationUtils.dataFrameToAsciiTable(topNHelpers,
+                            new String[]{"#", "Name", "Message Count (in the last 30 days)"},
+                            new HorizontalAlign[]{HorizontalAlign.RIGHT, HorizontalAlign.LEFT, HorizontalAlign.RIGHT}
+                        )
                     )
                 );
             default -> throw new IllegalStateException("Unexpected value: " + commandInterationName);

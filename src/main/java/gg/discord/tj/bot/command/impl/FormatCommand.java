@@ -71,7 +71,7 @@ public class FormatCommand implements Command {
                 .map(link -> originalPoster + "'s code requested by " + answerer + " was uploaded to " + link)
                 .onErrorReturn("An error occured while uploading the formatted code. Try again later");
         }
-        
+
         return responseMono;
     }
 }

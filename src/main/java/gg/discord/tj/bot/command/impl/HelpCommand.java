@@ -42,10 +42,10 @@ public class HelpCommand implements Command {
                 Mono.empty() :
                 channel.createMessage(String.format(PLAINTEXT_MESSAGE_TEMPLATE, PresentationUtils.dataFrameToAsciiTable(
                     fetchCommandInfoDataFrame(),
-                    new String[] { "Command", "Aliases", "Description" },
-                    new HorizontalAlign[] { HorizontalAlign.LEFT, HorizontalAlign.LEFT, HorizontalAlign.LEFT }
+                    new String[]{"Command", "Aliases", "Description"},
+                    new HorizontalAlign[]{HorizontalAlign.LEFT, HorizontalAlign.LEFT, HorizontalAlign.LEFT}
                 )))
-                ).then();
+            ).then();
     }
 
     private List<List<String>> fetchCommandInfoDataFrame() {
