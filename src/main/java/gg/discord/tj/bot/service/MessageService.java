@@ -41,6 +41,8 @@ public final class MessageService
         }
     }
 
+    public void reset() { repository.reset(); }
+
     public Mono<Integer> save(MessageCreateEvent event)
     {
         Optional<Snowflake> guildId = event.getGuildId();

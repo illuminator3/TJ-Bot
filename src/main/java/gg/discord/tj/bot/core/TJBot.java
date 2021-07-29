@@ -12,7 +12,6 @@ import gg.discord.tj.bot.command.PurgeableCommandHandler;
 import gg.discord.tj.bot.command.impl.*;
 import gg.discord.tj.bot.domain.EventHandler;
 import gg.discord.tj.bot.repository.CommandRepository;
-import gg.discord.tj.bot.repository.DatabaseManager;
 import gg.discord.tj.bot.service.DiscordService;
 import gg.discord.tj.bot.service.MessageService;
 import lombok.Getter;
@@ -24,13 +23,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.security.CodeSource;
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 @SuppressWarnings("ConstantConditions")
 @RequiredArgsConstructor
@@ -101,7 +96,7 @@ public class TJBot implements Bot {
     @Override
     public void reset() {
         DISCORD_SERVICE.reset();
-        DatabaseManager.INSTANCE.disconnect();
+        MESSAGE_SERVICE.reset();
     }
 
     @SneakyThrows
@@ -129,14 +124,12 @@ public class TJBot implements Bot {
     }
 
     private void registerShutdownService() {
-        Executors.newCachedThreadPool().submit(() -> {
-            while (!SCANNER.nextLine().equals("stop")) {
-                log.info("Received non-stop command");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                reset();
+                log.info("Shutdown hook completed");
             }
-
-            reset();
-
-            Runtime.getRuntime().halt(0);
         });
     }
 }
