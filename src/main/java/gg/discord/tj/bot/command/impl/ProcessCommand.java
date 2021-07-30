@@ -30,9 +30,9 @@ public class ProcessCommand implements Command {
         Matcher matcher = COMMAND_ARGS_PATTERN.matcher(args);
 
         if (matcher.matches()) {
-            Integer from = Integer.parseInt(matcher.group(1)) < 1 ? 1 : Integer.parseInt(matcher.group(1));       // Lower bound to 1
+            Integer from = Math.max(Integer.parseInt(matcher.group(1)), 1);  // Lower bound to 1
             Integer to = matcher.group(2) == null ? lineCount :
-                Integer.parseInt(matcher.group(2)) > lineCount ? lineCount : Integer.parseInt(matcher.group(2));  // Upper bound to lineCount
+                Math.min(Integer.parseInt(matcher.group(2)), lineCount);     // Upper bound to lineCount
 
             if (from.compareTo(to) > 0) {
                 msgTuple = Optional.of("range from: " + from + " cannot be greater than to: " + to);

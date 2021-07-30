@@ -124,12 +124,9 @@ public class TJBot implements Bot {
     }
 
     private void registerShutdownService() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                reset();
-                log.info("Shutdown hook completed");
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            reset();
+            log.info("Shutdown hook completed");
+        }));
     }
 }

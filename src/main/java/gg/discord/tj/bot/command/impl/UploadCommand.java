@@ -43,7 +43,7 @@ public class UploadCommand implements Command {
                         .flatMap(refMessage -> Mono.zip(refMessage.getAuthorAsMember().map(Member::getMention),
                             message.getAuthorAsMember().map(Member::getMention))
                             .flatMap(users -> decorateMessageWithUserInfo(refMessage.getContent(), users.getT1(), users.getT2())
-                                .flatMap(response -> channel.createMessage(response)))
+                                .flatMap(channel::createMessage))
                         )).then();
     }
 
