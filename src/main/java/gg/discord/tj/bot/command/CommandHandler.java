@@ -28,8 +28,8 @@ public class CommandHandler extends BaseEventHandler<MessageCreateEvent> {
             String commandWithPrefix = commandMatcher.group(COMMAND_WITH_PREFIX_GROUP);
             String commandName = commandMatcher.group(COMMAND_NAME_GROUP);
 
-            eventReturn = COMMAND_REPOSITORY.retrieveCommand(commandName)
-                .onExecute(new CommandExecutionContext(message, content.substring(commandWithPrefix.length()).trim()));
+            eventReturn = COMMAND_REPOSITORY.retrieveCommand(commandName).map(c ->
+                c.onExecute(new CommandExecutionContext(message, content.substring(commandWithPrefix.length()).trim()))).orElseGet(Mono::empty);
         }
 
         return eventReturn;

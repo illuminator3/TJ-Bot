@@ -42,14 +42,17 @@ public class TagCommand implements Command {
             .map(User::getMention)
             .collect(Collectors.joining(", "));
         Message message = context.message();
+        String tag = context.commandContent().split(" ")[0];
 
         return message
             .getChannel()
             .flatMap(channel -> channel == null ?
                 Mono.empty() :
-                channel.createMessage(tags.get(context.commandContent().split(" ")[0])
-                    .replace("{{ user }}", users.isEmpty() ? "" : " " + users))
-                    .flatMap(responseMessage -> MESSAGE_SERVICE.setPurgableCommandResponseReference(message.getId().asLong(), responseMessage))
+                tags.containsKey(tag) ?
+                    channel.createMessage(tags.get(tag)
+                            .replace("{{ user }}", users.isEmpty() ? "" : " " + users))
+                        .flatMap(responseMessage -> MESSAGE_SERVICE.setPurgableCommandResponseReference(message.getId().asLong(), responseMessage)) :
+                    channel.createMessage("Unknown tag: '" + tag + "'")
             )
             .then();
     }
