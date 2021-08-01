@@ -2,8 +2,6 @@ package gg.discord.tj.bot.repository;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import discord4j.core.object.entity.Message;
 
 import java.sql.*;
@@ -28,27 +26,29 @@ public enum MessageRepository {
 
         try (Statement statement = connection.createStatement()) {
             statement.execute("""
-                    CREATE TABLE IF NOT EXISTS messages (
-                        user long,
-                        timestamp long,
-                        guild long
-                    );
-                    """);
+                CREATE TABLE IF NOT EXISTS messages (
+                    user long,
+                    timestamp long,
+                    guild long
+                );
+                """);
         }
     }
 
-    public void reset() { databaseManager.disconnect(); }
+    public void reset() {
+        databaseManager.disconnect();
+    }
 
     public List<List<Long>> topNHelpersForGuild(long guildId, int limit) throws SQLException {
         List<List<Long>> topHelpersList = new ArrayList<>();
         Connection connection = databaseManager.establishConnection();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement("""
-                        WITH TOPHELPERS(user, count) AS (
-                            SELECT user, count(*) FROM messages WHERE guild = ?
-                            GROUP BY user ORDER BY count(*) DESC LIMIT ?
-                        ) SELECT ROW_NUMBER() OVER(ORDER BY count DESC) as '#', user, count from TOPHELPERS
-                        """)) {
+            WITH TOPHELPERS(user, count) AS (
+                SELECT user, count(*) FROM messages WHERE guild = ?
+                GROUP BY user ORDER BY count(*) DESC LIMIT ?
+            ) SELECT ROW_NUMBER() OVER(ORDER BY count DESC) as '#', user, count from TOPHELPERS
+            """)) {
             preparedStatement.setLong(1, guildId);
             preparedStatement.setInt(2, limit);
 

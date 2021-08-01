@@ -65,8 +65,8 @@ public enum DiscordRepository {
             .flatMapMany(Flux::fromIterable)
             .flatMap(eventHandler -> client.on(eventHandler.getEventType())
 //                .log(String.format("(%s) %s", eventHandler.getEventType().getSimpleName(), eventHandler.getClass().getSimpleName()))
-                .flatMap(eventHandler::processEvent)
-                .onErrorResume(eventHandler::handleError)
+                    .flatMap(eventHandler::processEvent)
+                    .onErrorResume(eventHandler::handleError)
             ).then();
     }
 }

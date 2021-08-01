@@ -9,6 +9,7 @@ public sealed interface EventHandler<T extends Event> permits BaseEventHandler {
     Logger log = LoggerFactory.getLogger(EventHandler.class);
 
     Class<T> getEventType();
+
     Mono<Void> processEvent(T event);
 
     default Mono<Void> handleError(Throwable error) {

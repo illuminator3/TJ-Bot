@@ -36,11 +36,11 @@ public class TagListCommand implements Command {
     @Override
     public Mono<Void> onExecute(CommandExecutionContext context) {
         var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream()
-                .sorted()
-                .collect(Collectors.toList());
+            .sorted()
+            .collect(Collectors.toList());
         int noOfDisplayRows = sortedListOfAvailableTags.size() % NO_OF_DISPLAY_COLUMNS == 0 ?
-                sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS :
-                (sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS) + 1;
+            sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS :
+            (sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS) + 1;
         String[][] displayDataArray = new String[noOfDisplayRows][NO_OF_DISPLAY_COLUMNS];
         Column[] columns = new Column[NO_OF_DISPLAY_COLUMNS];
 
@@ -51,7 +51,7 @@ public class TagListCommand implements Command {
         for (String tag : sortedListOfAvailableTags) {
             displayDataArray[i++ % noOfDisplayRows][i % noOfDisplayRows == 0 ? j++ : j] = tag;
         }
-        
+
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? Mono.empty() : channel.createMessage(String.format(TAGLIST_MESSAGE_TEMPLATE, AsciiTable.getTable(

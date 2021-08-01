@@ -32,7 +32,7 @@ public class UploadCommand implements Command {
     public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
-        
+
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted
@@ -43,7 +43,7 @@ public class UploadCommand implements Command {
                         .flatMap(refMessage -> Mono.zip(refMessage.getAuthorAsMember().map(Member::getMention),
                             message.getAuthorAsMember().map(Member::getMention))
                             .flatMap(users -> decorateMessageWithUserInfo(refMessage.getContent(), users.getT1(), users.getT2())
-                            .flatMap(response -> channel.createMessage(response)))
+                                .flatMap(channel::createMessage))
                         )).then();
     }
 
