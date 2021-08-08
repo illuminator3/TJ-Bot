@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public final class JavaFormatUtils {
+    public static final Pattern CODE_BLOCK_PATTERN = Pattern.compile("```.*\\n(.*)\\n?```");
+
     private static final Formatter FORMATTER = new Formatter();
 
     public static Tuple<Optional<String>, Optional<Throwable>> format(String input) {

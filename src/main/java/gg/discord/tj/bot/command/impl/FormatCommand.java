@@ -7,11 +7,13 @@ import gg.discord.tj.bot.command.Command;
 import gg.discord.tj.bot.command.CommandExecutionContext;
 import gg.discord.tj.bot.util.Hastebin;
 import gg.discord.tj.bot.util.JavaFormatUtils;
+import gg.discord.tj.bot.util.Tuple;
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 
 import static gg.discord.tj.bot.util.Constants.DISCORD_MAX_MESSAGE_LENGTH;
 import static gg.discord.tj.bot.util.MessageTemplate.JAVA_MESSAGE_TEMPLATE;
@@ -54,8 +56,21 @@ public class FormatCommand implements Command {
     }
 
     private String decorateMessageWithUserInfo(String content, String originalPoster, String answerer) {
-        Optional<String> stringOptional = JavaFormatUtils.format(content).first();
-        Optional<Throwable> throwableOptional = JavaFormatUtils.format(content).second();
+        Matcher matcher = JavaFormatUtils.CODE_BLOCK_PATTERN.matcher(content);
+        String found = content;
+
+        if (matcher.find()) {
+            found = matcher.group();
+        }
+
+        /*while (matcher.find()) {
+            String r = matcher.group();
+        }*/
+        // TODO allow multiple code blocks
+
+        Tuple<Optional<String>, Optional<Throwable>> formatted = JavaFormatUtils.format(found);
+        Optional<String> stringOptional = formatted.first();
+        Optional<Throwable> throwableOptional = formatted.second();
 
         return stringOptional
             .map(s -> originalPoster + "'s code requested by " + answerer + ":" + String.format(JAVA_MESSAGE_TEMPLATE, s))
@@ -71,7 +86,7 @@ public class FormatCommand implements Command {
                 .map(link -> originalPoster + "'s code requested by " + answerer + " was uploaded to " + link)
                 .onErrorReturn("An error occured while uploading the formatted code. Try again later");
         }
-        
+
         return responseMono;
     }
 }
