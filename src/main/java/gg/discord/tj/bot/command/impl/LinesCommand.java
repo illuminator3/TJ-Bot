@@ -33,7 +33,7 @@ public class LinesCommand implements Command {
     public Mono<Void> onExecute(CommandExecutionContext context) {
         Message message = context.message();
         Optional<MessageReference> referenceOpt = message.getMessageReference();
-        
+
         return context.message()
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted
@@ -47,7 +47,7 @@ public class LinesCommand implements Command {
                                 .setContent(decorateMessageWithUserInfo(addLineNumbers(refMessage.getContent()), users.getT1(), users.getT2()))
                                 .setMessageReference(refMessage.getId())
                             ))
-                            )).then();
+                        )).then();
 
     }
 
@@ -55,8 +55,9 @@ public class LinesCommand implements Command {
         String lines = content.replace("`", "\\`");
         List<String> st = Arrays.asList(lines.split("\n"));
         int length = String.valueOf(st.size()).length();
-        var ref = new Object()
-        { int c = 1; };
+        var ref = new Object() {
+            int c = 1;
+        };
 
         return st.stream()
             .map(s -> " ".repeat(length).substring(String.valueOf(ref.c).length()) + ref.c++ + ": " + s)

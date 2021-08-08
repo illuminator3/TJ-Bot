@@ -37,14 +37,14 @@ public class SyntaxCommand implements Command {
             .getChannel()
             .flatMap(channel -> channel == null ? // 1. Check if channel is empty. May be it was deleted
                 Mono.empty() :                    // 1. TRUE: Nothing to action
-                    referenceOpt.isEmpty() ?      // 1. FALSE: 2. Check if the current msg has a msg reference ie. if this was in reply to an earlier msg.
-                        channel.createMessage("This command works by replying to a message containing code") : // 2. TRUE: Reply back that it wont work.
-                        channel.getMessageById(referenceOpt.get().getMessageId().get())                        // 2. FALSE: Get the referent msg
-                                .flatMap(refMessage -> Mono.zip(refMessage.getAuthorAsMember().map(Member::getMention),
-                                    message.getAuthorAsMember().map(Member::getMention))
-                                    .flatMap(users -> channel.createMessage(decorateMessageWithUserInfo(refMessage.getContent(),
-                                        users.getT1(), users.getT2())))
-                                    )).then();
+                referenceOpt.isEmpty() ?      // 1. FALSE: 2. Check if the current msg has a msg reference ie. if this was in reply to an earlier msg.
+                    channel.createMessage("This command works by replying to a message containing code") : // 2. TRUE: Reply back that it wont work.
+                    channel.getMessageById(referenceOpt.get().getMessageId().get())                        // 2. FALSE: Get the referent msg
+                        .flatMap(refMessage -> Mono.zip(refMessage.getAuthorAsMember().map(Member::getMention),
+                            message.getAuthorAsMember().map(Member::getMention))
+                            .flatMap(users -> channel.createMessage(decorateMessageWithUserInfo(refMessage.getContent(),
+                                users.getT1(), users.getT2())))
+                        )).then();
     }
 
     private String decorateMessageWithUserInfo(String content, String originalPoster, String answerer) {

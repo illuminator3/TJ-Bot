@@ -9,8 +9,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 
-public class Hastebin
-{
+public class Hastebin {
     public static CompletableFuture<String> paste(String server, String text, boolean raw) {
         CompletableFuture<String> result = new CompletableFuture<>();
 

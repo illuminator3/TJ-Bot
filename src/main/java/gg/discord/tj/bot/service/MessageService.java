@@ -24,27 +24,24 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 @Slf4j
-public final class MessageService
-{
-    private final MessageRepository repository = MessageRepository.INSTANCE;
+public final class MessageService {
     private final static Pattern HELP_CHANNEL_NAME_PATTERN = Pattern.compile("help|review");
     private final static String TAG_FREE_MESSAGE_PATTERN = "^(?![?>]tag free).*$";
+    private final MessageRepository repository = MessageRepository.INSTANCE;
 
-    public void init()
-    {
-        try
-        {
+    public void init() {
+        try {
             repository.init();
-        } catch (SQLException throwables)
-        {
+        } catch (SQLException throwables) {
             log.error(throwables.getMessage(), throwables);
         }
     }
 
-    public void reset() { repository.reset(); }
+    public void reset() {
+        repository.reset();
+    }
 
-    public Mono<Integer> save(MessageCreateEvent event)
-    {
+    public Mono<Integer> save(MessageCreateEvent event) {
         Optional<Snowflake> guildId = event.getGuildId();
         Message message = event.getMessage();
         Optional<Member> member = event.getMember();
@@ -69,16 +66,15 @@ public final class MessageService
             });
     }
 
-    public Mono<List<List<String>>> topNHelpers(InteractionCreateEvent event)
-    {
+    public Mono<List<List<String>>> topNHelpers(InteractionCreateEvent event) {
         ApplicationCommandInteraction commandInteraction = event.getInteraction().getCommandInteraction().orElseThrow();
         Optional<ApplicationCommandInteractionOption> limitOption = commandInteraction.getOption("limit");
 
         int limit = 10;
         if (limitOption.isPresent()) {
             Optional<ApplicationCommandInteractionOptionValue> optionValue = limitOption.get().getValue();
-            if(optionValue.isPresent()) {
-               limit = Math.toIntExact(optionValue.get().asLong());
+            if (optionValue.isPresent()) {
+                limit = Math.toIntExact(optionValue.get().asLong());
             }
         }
 

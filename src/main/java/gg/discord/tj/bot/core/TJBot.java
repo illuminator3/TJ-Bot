@@ -39,15 +39,15 @@ public class TJBot implements Bot {
     private static final Duration DURATION_30D = Duration.ofDays(30);
     private static final Scanner SCANNER = new Scanner(System.in);
     private static final ApplicationCommandRequest TOP_HELPERS_COMMAND = ApplicationCommandRequest.builder()
-            .name("tophelpers")
-            .description("View the top helpers of last month")
-            .addOption(ApplicationCommandOptionData.builder()
-                    .name("limit")
-                    .description("The amount of top helpers")
-                    .required(false)
-                    .type(ApplicationCommandOptionType.INTEGER.getValue())
-                    .build())
-            .build();
+        .name("tophelpers")
+        .description("View the top helpers of last month")
+        .addOption(ApplicationCommandOptionData.builder()
+            .name("limit")
+            .description("The amount of top helpers")
+            .required(false)
+            .type(ApplicationCommandOptionType.INTEGER.getValue())
+            .build())
+        .build();
 
     private final Map<String, String> availableTags = new HashMap<>();
 
@@ -124,12 +124,9 @@ public class TJBot implements Bot {
     }
 
     private void registerShutdownService() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                reset();
-                log.info("Shutdown hook completed");
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            reset();
+            log.info("Shutdown hook completed");
+        }));
     }
 }
