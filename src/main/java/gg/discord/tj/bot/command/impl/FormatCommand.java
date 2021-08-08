@@ -60,7 +60,7 @@ public class FormatCommand implements Command {
         String found = content;
 
         if (matcher.find()) {
-            found = matcher.group();
+            found = matcher.group(1);
         }
 
         /*while (matcher.find()) {
