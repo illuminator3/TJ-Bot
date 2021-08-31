@@ -78,12 +78,14 @@ public final class MessageService {
             }
         }
 
-        limit = Math.min(limit, 20);
+        limit = Math.min(limit, 30);
 
         Function<List<List<Long>>, Flux<List<String>>> enhanceDataFrame = df -> Flux.concat(df.stream()
             .map(row ->
                 event.getInteraction().getGuild()
-                    .flatMap(guild -> guild.getMemberById(Snowflake.of(row.get(1))))
+                    .flatMap(guild -> guild.getMemberById(Snowflake.of(row.get(1)))
+                        .onErrorReturn(null)
+                    )
                     .map(member -> member == null ? "[UNKNOWN MEMBER]" : member.getTag())
                     .map(username -> List.of(String.valueOf(row.get(0)), username, String.valueOf(row.get(2))))
             ).toList());
