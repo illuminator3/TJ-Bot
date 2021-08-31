@@ -12,8 +12,8 @@ public sealed interface EventHandler<T extends Event> permits BaseEventHandler {
 
     Mono<Void> processEvent(T event);
 
-    default Mono<Void> handleError(Throwable error) {
-        log.error("Unable to register handler for event type: " + getEventType().getSimpleName(), error);
+    default Mono<Void> handleError(Throwable error, Object o) {
+        log.error("Unable to register handler for event type: " + getEventType().getSimpleName() + " and object: " + o, error);
         return Mono.empty();
     }
 }
