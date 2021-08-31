@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static gg.discord.tj.bot.util.MessageTemplate.TAGLIST_MESSAGE_TEMPLATE;
 
@@ -37,7 +36,7 @@ public class TagListCommand implements Command {
     public Mono<Void> onExecute(CommandExecutionContext context) {
         var sortedListOfAvailableTags = Application.BOT_INSTANCE.getAvailableTags().keySet().stream()
             .sorted()
-            .collect(Collectors.toList());
+            .toList();
         int noOfDisplayRows = sortedListOfAvailableTags.size() % NO_OF_DISPLAY_COLUMNS == 0 ?
             sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS :
             (sortedListOfAvailableTags.size() / NO_OF_DISPLAY_COLUMNS) + 1;

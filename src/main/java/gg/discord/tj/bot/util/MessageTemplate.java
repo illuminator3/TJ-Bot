@@ -1,6 +1,8 @@
 package gg.discord.tj.bot.util;
 
 public final class MessageTemplate {
+    private MessageTemplate() {}
+
     public static final String PLAINTEXT_MESSAGE_TEMPLATE = "```\n%s\n```",
         JAVA_MESSAGE_TEMPLATE = "```java\n%s\n```",
         KOTLIN_MESSAGE_TEMPLATE = "```kotlin\n%s\n```",

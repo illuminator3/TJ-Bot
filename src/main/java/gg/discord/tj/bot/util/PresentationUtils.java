@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 public final class PresentationUtils {
+    private PresentationUtils() {}
+
     public static String dataFrameToAsciiTable(List<List<String>> dataFrame, String[] headers, HorizontalAlign[] horizontalAligns) {
         Objects.requireNonNull(dataFrame, "DataFrame cannot be null");
         Objects.requireNonNull(headers, "Headers cannot be null");

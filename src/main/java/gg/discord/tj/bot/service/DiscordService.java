@@ -11,7 +11,7 @@ import java.util.List;
 
 @Slf4j
 public final class DiscordService {
-    private final DiscordRepository discordRepository = DiscordRepository.INSTANCE;
+    private static final DiscordRepository discordRepository = DiscordRepository.INSTANCE;
 
     public void init(String token) {
         discordRepository.init(token);
