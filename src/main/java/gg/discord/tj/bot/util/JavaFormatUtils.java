@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public final class JavaFormatUtils {
+    private JavaFormatUtils() {}
+
     private static final Formatter FORMATTER = new Formatter();
 
     public static Tuple<Optional<String>, Optional<Throwable>> format(String input) {
